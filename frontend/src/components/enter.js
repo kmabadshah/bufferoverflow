@@ -1,55 +1,96 @@
+/* keslint-disable */
 import React from 'react';
 import axios from 'axios';
 import croxy from 'cors-anywhere';
 // import auth0 from 'auth0-js';
 
+const backend_url = 'http://localhost:8000'
+
 export default function Enter() {
+    const [img_src, set_img_src] = React.useState()
+
     return (
         <>
             <h1>Enter home</h1>
             <button onClick={(e) => handleClick(e)}>Click Me</button>
+            {img_src && (<img src={img_src} alt="face" />)}
         </>
     );
 
     async function handleClick(e) {
-        /* get the oauth token BEGIN */
-        let get_token_url = 'https://accounts.google.com/o/oauth2/v2/auth?'
-        get_token_url += '\
-client_id=924892241355-hncoru00pl5k444kslb20poi0ath6ikt.apps.googleusercontent.com\
-&redirect_uri=http://localhost:3000/oauth_consent\
-&response_type=token\
-&scope=https://www.googleapis.com/auth/userinfo.profile\
-        '
-        const win = window.open(get_token_url, '_blank', 'toolbar=0,location=0,menubar=0');
-        const timerPromise = () => new Promise((resolve, reject) => {
-            const timer = setInterval(() =>  {
-                if (win.closed) {
-                    const oauth_url = window.localStorage.getItem('oauth_url')
-                    window.localStorage.removeItem('oauth_url')
-                    resolve(oauth_url)
-                    clearInterval(timer)
+        try {
+            /* get the oauth token BEGIN */
+            let get_token_url =
+                'https://www.github.com/login/oauth/authorize' +
+                '?client_id=24bf0d137961d6038ffb' +
+                '&redirect_uri=http://localhost:3000/oauth_consent' +
+                '&scope=read:user'
+
+            const win = window.open(get_token_url, '_blank', 'toolbar=0,location=0,menubar=0');
+            const timerPromise = () => new Promise((resolve, reject) => {
+                const timer = setInterval(() =>  {
+                    if (win.closed) {
+                        const oauth_url = window.localStorage.getItem('oauth_url')
+                        if (!oauth_url) { return }
+                        window.localStorage.removeItem('oauth_url')
+                        resolve(oauth_url)
+                        clearInterval(timer)
+                    }
+                }, 1000)
+            })
+
+
+            const oauth_url = await timerPromise()
+            const data = oauth_url.substring(oauth_url.indexOf("?")+1)
+            const [_, code] = data.match(/code=(.*)/)
+            get_token_url = "https://github.com/login/oauth/access_token"
+            const {data: {query_data: resStr, query_status}} = await axios.post(backend_url+"/cors", {
+                url: get_token_url,
+                method: 'POST',
+                data: {
+                    client_id: "24bf0d137961d6038ffb",
+                    client_secret: '9698017268cd16f3b72dd169646826ac0924dba4',
+                    code: code,
+                    redirect_uri: 'http://localhost:3000/oauth_consent'
                 }
-            }, 1000)
-        })
+            })
 
-        // const u = "access_token=ya29.a0ARrdaM8kJLZJUo9CwWzWkMkqXx_JGA3qyKKiBbGJulcpoe6rVREdQSAIDbPacPvbZUPsGy_RSqEpNU-fFgWZxoc7jydMlotQi7hA4VggAwOj7MBgN3SiJ4uaw4Gwq-VJ9f3BUAbkjB0aZI1WOXoCzpO-VRTy&token_type=Bearer&expires_in=3599&scope=profile%20https://www.googleapis.com/auth/userinfo.profile"
-        const oauth_url = await timerPromise()
-        const data = oauth_url.substring(oauth_url.indexOf("#")+1)
-        const [_, access_token, token_type, expiresIn, scope] = data.match(/access_token=(.*)&token_type=(.*)&expires_in=(.*)&scope=(.*)/)
-        /* get the oauth token END */
+            const [__, token] = resStr.match(/access_token=(.*?)&/)
+            /* get the oauth token END */
 
 
 
-        const get_data_url = "http://localhost:8080/http://www.googleapis.com/auth/androidpublisher"
-        const res = await axios.get(get_data_url, {
-            headers: {'Authorization': `Bearer ${access_token}`},
-        })
 
-        console.log(res)
+            /* process oauth token BEGIN */
+            const get_data_url = "https://api.github.com/user"
+            const {data: {login: username, avatar_url: image_url}} = await axios.get(get_data_url, {
+                headers: {Authorization: `token ${token}`}
+            })
+            /* process oauth token END */
 
 
-        // const res = await axios.get(url)
-        // console.log(res)
+
+
+            /* create the user BEGIN */
+            const res = await axios.post(`${backend_url}/users`, {
+                username, image_url, profile_description: ''
+            })
+            if (res.status === 200)
+                console.log("WELCOME HOME")
+
+            /* create the user END */
+
+
+
+            // const res = await axios.get(url)
+            // console.log(res)
+        } catch(e) {
+            if (e.response)
+                console.log("REQUEST ERROR: ", e.response)
+            else
+                console.log("ERROR: ", e)
+
+        }
     }
 }
 
