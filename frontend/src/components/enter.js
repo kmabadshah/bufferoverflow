@@ -1,13 +1,19 @@
 /* keslint-disable */
 import React from 'react';
 import axios from 'axios';
-import croxy from 'cors-anywhere';
+import {Redirect} from 'react-router-dom';
+import {fetch_and_store_token, get_user_info} from './utilities'
 // import auth0 from 'auth0-js';
 
 const backend_url = 'http://localhost:8000'
 
 export default function Enter() {
     const [img_src, set_img_src] = React.useState()
+
+    React.useEffect(() => {
+        //
+    }, [])
+
 
     return (
         <>
@@ -18,8 +24,9 @@ export default function Enter() {
     );
 
     async function handleClick(e) {
+        /* fetch and store the url string given by github before the actual token */
+
         try {
-            /* get the oauth token BEGIN */
             let get_token_url =
                 'https://www.github.com/login/oauth/authorize' +
                 '?client_id=24bf0d137961d6038ffb' +
@@ -27,63 +34,25 @@ export default function Enter() {
                 '&scope=read:user'
 
             const win = window.open(get_token_url, '_blank', 'toolbar=0,location=0,menubar=0');
-            const timerPromise = () => new Promise((resolve, reject) => {
+            const timer_promise = () => new Promise((resolve, reject) => {
                 const timer = setInterval(() =>  {
                     if (win.closed) {
-                        const oauth_url = window.localStorage.getItem('oauth_url')
-                        if (!oauth_url) { return }
-                        window.localStorage.removeItem('oauth_url')
-                        resolve(oauth_url)
+                        resolve(window.localStorage.getItem('string_before_api_token'))
                         clearInterval(timer)
                     }
                 }, 1000)
             })
 
+            const string_before_api_token = await timer_promise()
+            if (!string_before_api_token) return
 
-            const oauth_url = await timerPromise()
-            const data = oauth_url.substring(oauth_url.indexOf("?")+1)
-            const [_, code] = data.match(/code=(.*)/)
-            get_token_url = "https://github.com/login/oauth/access_token"
-            const {data: {query_data: resStr, query_status}} = await axios.post(backend_url+"/cors", {
-                url: get_token_url,
-                method: 'POST',
-                data: {
-                    client_id: "24bf0d137961d6038ffb",
-                    client_secret: '9698017268cd16f3b72dd169646826ac0924dba4',
-                    code: code,
-                    redirect_uri: 'http://localhost:3000/oauth_consent'
-                }
-            })
-
-            const [__, token] = resStr.match(/access_token=(.*?)&/)
-            /* get the oauth token END */
+            // redirect to home page
+            <Redirect
+                pathname="/"
+            />
 
 
 
-
-            /* process oauth token BEGIN */
-            const get_data_url = "https://api.github.com/user"
-            const {data: {login: username, avatar_url: image_url}} = await axios.get(get_data_url, {
-                headers: {Authorization: `token ${token}`}
-            })
-            /* process oauth token END */
-
-
-
-
-            /* create the user BEGIN */
-            const res = await axios.post(`${backend_url}/users`, {
-                username, image_url, profile_description: ''
-            })
-            if (res.status === 200)
-                console.log("WELCOME HOME")
-
-            /* create the user END */
-
-
-
-            // const res = await axios.get(url)
-            // console.log(res)
         } catch(e) {
             if (e.response)
                 console.log("REQUEST ERROR: ", e.response)
