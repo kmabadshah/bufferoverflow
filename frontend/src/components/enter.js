@@ -3,12 +3,16 @@ import React from 'react';
 import axios from 'axios';
 import {Redirect} from 'react-router-dom';
 import {fetch_and_store_token, get_user_info} from './utilities'
+import {extras_actions} from '../index'
+import {useDispatch, useSelector} from 'react-redux'
 // import auth0 from 'auth0-js';
 
 const backend_url = 'http://localhost:8000'
 
 export default function Enter() {
     const [img_src, set_img_src] = React.useState()
+    const dispatch = useDispatch()
+    const loading = useSelector(store => store.extras.loading)
 
     React.useEffect(() => {
         //
@@ -47,11 +51,7 @@ export default function Enter() {
             if (!string_before_api_token) return
 
             // redirect to home page
-            <Redirect
-                pathname="/"
-            />
-
-
+            dispatch(extras_actions.loading_on())
 
         } catch(e) {
             if (e.response)
@@ -64,10 +64,3 @@ export default function Enter() {
 }
 
 
-
-
-// user clicks on the login button
-// popup window with google oauth
-// after user consent, redirect back to root url
-// close the popup window
-// reload the main window with user data

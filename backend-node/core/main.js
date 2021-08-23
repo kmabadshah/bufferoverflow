@@ -61,7 +61,7 @@ app.post('/users', async (req, res) =>  {
             or profile_description=$3
         `, [username, image_url, profile_description])
         if (db_res) {
-            return res.send(`user already exists`)
+            return res.status(400).send(`user already exists`)
         }
         // check if the user already exists END
 

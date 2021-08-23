@@ -2,6 +2,19 @@
 
 import axios from 'axios'
 
+export class User {
+    constructor({user_id, username, image_url, profile_description}) {
+        if (!user_id || !username || !image_url) {
+            throw new Error('invalid field value')
+        }
+
+        this.user_id = user_id
+        this.username = username
+        this.image_url = image_url
+        this.profile_descrpition = profile_description || ""
+    }
+}
+
 export const backend_url = 'http://localhost:8000'
 const github_client_id = "24bf0d137961d6038ffb"
 const github_client_secret = '9698017268cd16f3b72dd169646826ac0924dba4'
@@ -18,7 +31,7 @@ export async function fetch_and_store_token(string_before_api_token) {
     const [_, github_code] = data.match(/code=(.*)/)
     if (!github_code) return null
 
-    const {data: {query_data: resStr, query_status}} = await axios.post(backend_url+"/cors", {
+    const d = await axios.post(backend_url+"/cors", {
         url: github_get_token_url,
         method: 'POST',
         data: {
@@ -28,6 +41,8 @@ export async function fetch_and_store_token(string_before_api_token) {
             redirect_uri: github_redirect_uri
         }
     })
+    console.log(d)
+    return
     const [__, token] = resStr.match(/access_token=(.*?)&/)
 
     /* store the github api token */
@@ -49,8 +64,7 @@ export async function get_user_info(token_promise) {
         const {data: {login: username, avatar_url: image_url}} = res
         /* get the user data END */
 
-        return {username, image_url, profile_description: ""}
-
+        return {username, image_url}
     } catch(e) {
         if (e.response)
             console.log("REQUEST ERROR: ", e.response)
