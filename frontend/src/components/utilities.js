@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* keslint-disable */
 
 import axios from 'axios'
 
@@ -22,6 +22,7 @@ const github_redirect_uri = 'http://localhost:3000/oauth_consent'
 const github_get_token_url = 'https://github.com/login/oauth/access_token'
 
 export async function fetch_and_store_token(string_before_api_token) {
+    console.log("CALLED fetch_and_store_token")
     if (!string_before_api_token) return null
 
     const idx = string_before_api_token.indexOf("?")+1
@@ -31,7 +32,7 @@ export async function fetch_and_store_token(string_before_api_token) {
     const [_, github_code] = data.match(/code=(.*)/)
     if (!github_code) return null
 
-    const d = await axios.post(backend_url+"/cors", {
+    const {data: {query_data: resStr, query_status}} = await axios.post(backend_url+"/cors", {
         url: github_get_token_url,
         method: 'POST',
         data: {
@@ -41,8 +42,6 @@ export async function fetch_and_store_token(string_before_api_token) {
             redirect_uri: github_redirect_uri
         }
     })
-    console.log(d)
-    return
     const [__, token] = resStr.match(/access_token=(.*?)&/)
 
     /* store the github api token */
@@ -72,3 +71,13 @@ export async function get_user_info(token_promise) {
             console.log("ERROR: ", e)
     }
 }
+
+
+
+
+
+
+
+
+
+

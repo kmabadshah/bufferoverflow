@@ -18,8 +18,6 @@ export default function App() {
     const [something_went_wrong, set_something_went_wrong] = React.useState(false)
     const dispatch = useDispatch()
 
-    // use redux to store the user data and the authenticating variable
-
     /* fetch the user,
      * store the user,
      * update the `authenticating` variable */
@@ -28,7 +26,10 @@ export default function App() {
             const string_before_api_token = localStorage.getItem('string_before_api_token')
 
             if (loading) {
-                if (!current_user && string_before_api_token ) try {
+                /* do not fetch user on the /oauth_consent
+                 * that page is only for storing the github code and github token
+                 * */
+                if (pathname !== "/oauth_consent" && !current_user && string_before_api_token) try {
                     const token = await fetch_and_store_token(string_before_api_token)
                     const user_data = await get_user_info(token)
                     const res = await axios.post(`${backend_url}/users`, user_data)
