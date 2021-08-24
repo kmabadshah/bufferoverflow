@@ -2,17 +2,12 @@
 
 import axios from 'axios'
 
-export class User {
-    constructor({user_id, username, image_url, profile_description}) {
-        if (!user_id || !username || !image_url) {
-            throw new Error('invalid field value')
-        }
+export function new_user_obj({user_id, username, image_url, profile_description}) {
+    if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
+    else if (!username) throw new Error(`invalid username: "${username}"`)
+    else if (!image_url) throw new Error(`invalid image_url: "${image_url}"`)
 
-        this.user_id = user_id
-        this.username = username
-        this.image_url = image_url
-        this.profile_descrpition = profile_description || ""
-    }
+    return { user_id, username, image_url, profile_description }
 }
 
 export const backend_url = 'http://localhost:8000'
@@ -21,7 +16,7 @@ const github_client_secret = '9698017268cd16f3b72dd169646826ac0924dba4'
 const github_redirect_uri = 'http://localhost:3000/oauth_consent'
 const github_get_token_url = 'https://github.com/login/oauth/access_token'
 
-export async function fetch_and_store_token(string_before_api_token) {
+export async function fetch_token_async(string_before_api_token) {
     if (!string_before_api_token) return null
 
     const idx = string_before_api_token.indexOf("?")+1
@@ -43,13 +38,10 @@ export async function fetch_and_store_token(string_before_api_token) {
     })
     const [__, token] = resStr.match(/access_token=(.*?)&/)
 
-    /* store the github api token */
-    localStorage.setItem('github_api_token', token)
-
     return token
 }
 
-export async function get_user_info(token_promise) {
+export async function get_user_info_async(token_promise) {
     try {
         const token = await token_promise
         /* get the user data BEGIN */

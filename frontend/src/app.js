@@ -3,7 +3,7 @@ import Enter from './components/enter';
 import Home from './components/home';
 import axios from 'axios';
 import NotFound from './components/not_found';
-import {fetch_and_store_token, get_user_info, backend_url, User} from './components/utilities';
+import {get_user_info_async, backend_url, new_user_obj} from './components/utilities';
 import { Switch, Route, BrowserRouter as Router, useHistory } from 'react-router-dom';
 import {extras_actions, users_actions} from './index'
 import {useSelector, useDispatch} from 'react-redux'
@@ -13,7 +13,7 @@ import './tailwind.css';
 export default function App() {
     const history = useHistory()
     const pathname = window.location.pathname
-    const string_before_api_token = localStorage.getItem('string_before_api_token')
+    const github_api_token = localStorage.getItem('github_api_token')
     const {extras: {loading}, users: {current_user}} = useSelector(store => store)
     const [something_went_wrong, set_something_went_wrong] = React.useState(false)
     const dispatch = useDispatch()
@@ -23,19 +23,16 @@ export default function App() {
      * update the `authenticating` variable */
     React.useLayoutEffect(() => {
         (async () => {
-            const string_before_api_token = localStorage.getItem('string_before_api_token')
-
             try {
                 if (loading) {
                     /* do not fetch user on the /oauth_consent
                      * that page is only for storing the github code and github token
                      * */
-                    if (pathname !== "/oauth_consent" && !current_user && string_before_api_token) {
-                        const token = await fetch_and_store_token(string_before_api_token)
-                        const user_data = await get_user_info(token)
-                        const res = await axios.post(`${backend_url}/users`, user_data)
+                    if (pathname !== "/oauth_consent" && !current_user && github_api_token) {
+                        const user_data = await get_user_info_async(github_api_token)
+                        const {data} = await axios.post(`${backend_url}/users`, user_data)
 
-                        dispatch(users_actions.set_current_user(new User(res.data)))
+                        dispatch(users_actions.set_current_user(new_user_obj(data)))
                     }
 
                     dispatch(extras_actions.loading_off())
@@ -81,7 +78,7 @@ export default function App() {
 
 
 
-    if (!string_before_api_token) {
+    if (!github_api_token) {
         window.history.replaceState(null, "", "/enter")
         return <Enter />
     }
@@ -99,3 +96,15 @@ export default function App() {
 
 }
 
+
+
+
+
+
+// TODO: change class User from non-serializable to serializable
+// by converting it from class to a function that returns an object
+//
+//
+//
+//
+//

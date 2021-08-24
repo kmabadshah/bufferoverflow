@@ -2,7 +2,7 @@
 import React from 'react';
 import axios from 'axios';
 import {Redirect} from 'react-router-dom';
-import {fetch_and_store_token, get_user_info} from './utilities'
+import {fetch_token_async, get_user_info} from './utilities'
 import {extras_actions} from '../index'
 import {useDispatch, useSelector} from 'react-redux'
 // import auth0 from 'auth0-js';
@@ -49,6 +49,10 @@ export default function Enter() {
 
             const string_before_api_token = await timer_promise()
             if (!string_before_api_token) return
+
+            // fetch and store the token
+            const token = await fetch_token_async(string_before_api_token)
+            localStorage.setItem('github_api_token', token)
 
             // redirect to home page
             dispatch(extras_actions.loading_on())
