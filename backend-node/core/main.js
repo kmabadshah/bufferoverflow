@@ -40,16 +40,19 @@ app.post('/cors', async(req, res) => {
         res.status(200).send({query_data: query_res.data, query_status: query_res.status})
     } catch(e) {
         console.log("ERROR: ", e)
+        res.status(500).send()
     }
 })
 
 app.post('/users', async (req, res) =>  {
     try{
         // get the post data BEGIN
-        const {username, image_url, profile_description} = req.body
-        if (!username || !image_url || (profile_description != "" && profile_description)) {
+        let {username, image_url, profile_description} = req.body
+        if (!username || !image_url) {
             return res.status(400).send('missing fields')
         }
+
+        profile_description = profile_description || ""
         // get the post data END
 
 
@@ -80,9 +83,9 @@ app.post('/users', async (req, res) =>  {
 
         res.status(200).send(db_res)
         // insert and return user END
-
     } catch(e) {
         console.log("ERROR: ", e)
+        res.status(500).send()
     }
 })
 

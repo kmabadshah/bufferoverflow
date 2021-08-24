@@ -25,27 +25,30 @@ export default function App() {
         (async () => {
             const string_before_api_token = localStorage.getItem('string_before_api_token')
 
-            if (loading) {
-                /* do not fetch user on the /oauth_consent
-                 * that page is only for storing the github code and github token
-                 * */
-                if (pathname !== "/oauth_consent" && !current_user && string_before_api_token) try {
-                    const token = await fetch_and_store_token(string_before_api_token)
-                    const user_data = await get_user_info(token)
-                    const res = await axios.post(`${backend_url}/users`, user_data)
+            try {
+                if (loading) {
+                    /* do not fetch user on the /oauth_consent
+                     * that page is only for storing the github code and github token
+                     * */
+                    if (pathname !== "/oauth_consent" && !current_user && string_before_api_token) {
+                        const token = await fetch_and_store_token(string_before_api_token)
+                        const user_data = await get_user_info(token)
+                        const res = await axios.post(`${backend_url}/users`, user_data)
 
-                    const user_instance = new User(res)
-                    dispatch(users_actions.set_current_user(user_instance))
-                } catch(e) {
-                    if (e.response)
-                        console.log("REQUEST ERROR: ", e.response)
-                    else
-                        console.log("ERROR: ", e)
+                        dispatch(users_actions.set_current_user(new User(res.data)))
+                    }
 
-                    set_something_went_wrong(true)
+                    dispatch(extras_actions.loading_off())
+
                 }
+            }
+            catch(e) {
+                if (e.response)
+                    console.log("REQUEST ERROR: ", e.response)
+                else
+                    console.log("ERROR: ", e)
 
-                dispatch(extras_actions.loading_off())
+                set_something_went_wrong(true)
             }
         })()
 

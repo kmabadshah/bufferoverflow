@@ -22,7 +22,6 @@ const github_redirect_uri = 'http://localhost:3000/oauth_consent'
 const github_get_token_url = 'https://github.com/login/oauth/access_token'
 
 export async function fetch_and_store_token(string_before_api_token) {
-    console.log("CALLED fetch_and_store_token")
     if (!string_before_api_token) return null
 
     const idx = string_before_api_token.indexOf("?")+1
