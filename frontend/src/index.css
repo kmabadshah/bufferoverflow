@@ -1,3 +1,11 @@
-:root {
+button {
+    @apply focus:outline-black;
+}
 
+.notification_description {
+    @apply text-justify;
+}
+
+.notification_button {
+    @apply m-3;
 }

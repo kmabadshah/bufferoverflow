@@ -96,15 +96,3 @@ export default function App() {
 
 }
 
-
-
-
-
-
-// TODO: change class User from non-serializable to serializable
-// by converting it from class to a function that returns an object
-//
-//
-//
-//
-//
