@@ -1,6 +1,7 @@
 import React from 'react';
 import Enter from './components/enter';
 import Home from './components/home';
+import User from './components/user';
 import axios from 'axios';
 import NotFound from './components/not_found';
 import {get_user_info_async, backend_url, new_user_obj} from './components/utilities';
@@ -36,7 +37,6 @@ export default function App() {
                     }
 
                     dispatch(extras_actions.loading_off())
-
                 }
             }
             catch(e) {
@@ -90,6 +90,7 @@ export default function App() {
     return <Router>
         <Switch>
             <Route exact path="/"> <Home/> </Route>
+            <Route path="/users/:user_id"> <User /> </Route>
             <Route path="/"> <NotFound/> </Route>
         </Switch>
     </Router>

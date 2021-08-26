@@ -1,16 +1,25 @@
 import React from 'react';
 import {fetch_and_store_token, get_user_info} from './utilities'
 import {Link, useHistory} from 'react-router-dom'
+import {useSelector, useDispatch} from 'react-redux'
+import {extras_actions, users_actions} from '../index.js'
 
 /*
- * home page will have a navbar, left side logo, right side notification and profile icon.
- * home page will have a 'ask question' button
- * home page with all questions list
+ *
+ * a component for the home page
+ * url: /
+ * has the following sections
+ * row-1: navbar(left: logo, right: notification and profile icon)
+ * row-2: ask question button at far right
+ * row-3: column with all questions
+ *
  * */
 
 export default function Home() {
     const pathname = window.location.pathname
+    const dispatch = useDispatch()
     const [notification_icon_clicked, set_notification_icon_clicked] = React.useState(false)
+    const current_user = useSelector(store => store.users.current_user)
     const [profile_icon_clicked, set_profile_icon_clicked] = React.useState(true)
     const history = useHistory()
 
@@ -57,7 +66,7 @@ export default function Home() {
         return (
             <div id='profile_dialog' tabIndex={-1} className={`flex p-3 flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
                 <h1 id='profile_user_image' className={`text-center`}>user_image</h1>
-                <h1 id='profile_user_name' className={`text-center`}>user_name</h1>
+                <h1 id='profile_user_name' className={`text-center`}>{current_user.username}</h1>
                 <button id='profile_link' onClick={handle_go_to_profile_click}>go_to_profile</button>
                 <button id='profile_logout_button' onClick={handle_logout_click}>logout</button>
             </div>
@@ -78,6 +87,9 @@ export default function Home() {
         // turn state.loading = true
         // history.push() to /users/{id} page
         // turn state.loading = false
+
+        dispatch(extras_actions.loading_on())
+        history.push(`/users/${current_user.user_id}`)
     }
 
     function handle_notification_click() {
@@ -87,7 +99,7 @@ export default function Home() {
         // notification {
         //   notification_id: 10,
         //   notification_title: Somebody replied to your post,
-        //   link: /questions/{id},
+        //   question_id: 20,
         //   user_id: 12,
         // }
 
@@ -102,6 +114,10 @@ export default function Home() {
         // delete all tokens from localStorage
         // history.push() to /enter page
         // turn state.loading = false
+
+        dispatch(extras_actions.loading_on())
+        dispatch(users_actions.unset_current_user())
+        localStorage.clear()
     }
 
     function handle_logo_click() {

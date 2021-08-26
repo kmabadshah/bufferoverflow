@@ -44,13 +44,16 @@ export const {reducer: users_reducer, actions: users_actions} = createSlice({
     reducers: {
         set_current_user: (state, action) => {
             state.current_user = action.payload
+        },
+
+        unset_current_user: (state, _) => {
+            state.current_user = null
         }
     }
 })
 
 const store = configureStore({
     reducer: {
-        extras: extras_reducer,
         extras: extras_reducer,
         users: users_reducer
     }
