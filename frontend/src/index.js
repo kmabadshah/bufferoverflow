@@ -20,9 +20,26 @@ export const {reducer: extras_reducer, actions: extras_actions} = createSlice({
 })
 
 export const {reducer: users_reducer, actions: users_actions} = createSlice({
+    /*
+     * state {
+         current_user: user_obj,
+         notifications: [notification],
+       }
+    */
+
+    /*
+     * reducers {
+     *   set_current_user: state.current_user = action.payload
+     *   unset_current_user: state.current_user = null
+     *   add_notification: append action.payload to state.notifications
+     * }
+     * */
+
+
+
     name: 'users',
     initialState: {
-        current_user: null
+        current_user: null,
     },
     reducers: {
         set_current_user: (state, action) => {

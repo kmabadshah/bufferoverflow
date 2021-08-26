@@ -11,7 +11,10 @@ import {Link, useHistory} from 'react-router-dom'
 export default function Home() {
     const pathname = window.location.pathname
     const [notification_icon_clicked, set_notification_icon_clicked] = React.useState(false)
+    const [profile_icon_clicked, set_profile_icon_clicked] = React.useState(true)
     const history = useHistory()
+
+    // const notifications = useSelector(store => store.notifications)
 
     return (
         <div className={`flex flex-col h-screen container mx-auto`}>
@@ -19,28 +22,86 @@ export default function Home() {
                 <button id='logo' className={``} onClick={handle_logo_click}>bufferoverflow</button>
 
                 <div className={`flex`}>
-                    <div className={`relative border border-black`}>
+                    <div className={`relative`}>
                         <button id='notification_icon' className={`mr-2`} onClick={handle_notification_icon_click}>noticon</button>
-                        {notification_icon_clicked && (
-                            <div id='notification_dialog' tabIndex={-1} className={`flex flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
-                                {/* many many <Notification /> here */}
-                                {[...Array(10)].map((_, i) => <Notification key={i} />)}
-                            </div>
-                        )}
+
+                    {notification_icon_clicked && (
+                        <div id='notification_dialog' tabIndex={-1} className={`flex flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
+                            {[...Array(10)]/* loop over notifications */.map((notification, i) =>
+                                <Notification
+                                    key={i/* notification.notification_id goes here*/}
+                                    notification={null/* notification object goes here */}
+                                />
+                            )}
+                        </div>
+                    )}
                     </div>
 
-                    <button id='profile_icon' className={``} onClick={handle_profile_icon_click}>proficon</button>
+                    <div className={`relative`}>
+                        <button id='profile_icon' className={`mr-2`} onClick={handle_profile_icon_click}>proficon</button>
+
+                        {profile_icon_clicked && <Profile />}
+                    </div>
                 </div>
             </div>
         </div>
     );
 
-    function Notification() {
+    // the profile dialog has
+    // user image
+    // username
+    // link to profile
+    // logout option
+
+    function Profile() {
         return (
-            <button className={`notification_button`}>
-                <h1 className={`notification_title`}>Hello World</h1>
+            <div id='profile_dialog' tabIndex={-1} className={`flex p-3 flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
+                <h1 id='profile_user_image' className={`text-center`}>user_image</h1>
+                <h1 id='profile_user_name' className={`text-center`}>user_name</h1>
+                <button id='profile_link' onClick={handle_go_to_profile_click}>go_to_profile</button>
+                <button id='profile_logout_button' onClick={handle_logout_click}>logout</button>
+            </div>
+        )
+    }
+
+    function Notification() {
+        // func_args: notification object
+
+        return (
+            <button className={`notification_button`} onClick={() => null /* handle_notification_click(notification) */}>
+                <h1 className={`notification_title`}>This is a notification</h1>
             </button>
         )
+    }
+
+    function handle_go_to_profile_click() {
+        // turn state.loading = true
+        // history.push() to /users/{id} page
+        // turn state.loading = false
+    }
+
+    function handle_notification_click() {
+        // func_args(1): the notification object
+
+        // notification can be something like
+        // notification {
+        //   notification_id: 10,
+        //   notification_title: Somebody replied to your post,
+        //   link: /questions/{id},
+        //   user_id: 12,
+        // }
+
+        // turn state.loading = true
+        // history.push() to notification.link
+        // turn state.loading = false
+    }
+
+    function handle_logout_click() {
+        // turn state.loading = true
+        // remove user from the redux store
+        // delete all tokens from localStorage
+        // history.push() to /enter page
+        // turn state.loading = false
     }
 
     function handle_logo_click() {
@@ -51,10 +112,12 @@ export default function Home() {
 
     /* show a dialog containing all the notifications */
     function handle_notification_icon_click() {
+        set_profile_icon_clicked(false)
         set_notification_icon_clicked(prev => !prev)
     }
 
     function handle_profile_icon_click() {
-        console.log(``)
+        set_notification_icon_clicked(false)
+        set_profile_icon_clicked(prev => !prev)
     }
 }
