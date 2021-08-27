@@ -46,6 +46,12 @@ export default function Home() {
                     </div>
                 </div>
             </div>
+
+
+
+            <div className={`flex justify-end boder border-red-900 mt-5`}>
+                <button className={``} onClick={handle_ask_question_click}>Ask Question</button>
+            </div>
         </div>
     );
 
@@ -87,6 +93,15 @@ export default function Home() {
         ))
     }
 
+    function handle_ask_question_click() {
+        // loading=on
+        // go to /ask_question page
+        // loading=off
+
+        dispatch(extras_actions.loading_on())
+        history.push(`/ask_question`)
+    }
+
     function handle_go_to_profile_click() {
         // turn state.loading = true
         // history.push() to /users/{id} page
@@ -111,6 +126,7 @@ export default function Home() {
         // turn state.loading = true
         // history.push() to notification.notification_link
         // turn state.loading = false
+
     }
 
     function handle_logout_click() {
