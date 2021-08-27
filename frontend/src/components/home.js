@@ -99,12 +99,13 @@ export default function Home() {
         // notification {
         //   notification_id: 10,
         //   notification_title: Somebody replied to your post,
-        //   question_id: 20,
+        //   notification_link: 20,
+        //   timestamp: 2021-08-27 08:02:00.490562+00,
         //   user_id: 12,
         // }
 
         // turn state.loading = true
-        // history.push() to notification.link
+        // history.push() to notification.notification_link
         // turn state.loading = false
     }
 
@@ -112,7 +113,6 @@ export default function Home() {
         // turn state.loading = true
         // remove user from the redux store
         // delete all tokens from localStorage
-        // history.push() to /enter page
         // turn state.loading = false
 
         dispatch(extras_actions.loading_on())

@@ -2,12 +2,13 @@
 
 import axios from 'axios'
 
-export function new_user_obj({user_id, username, image_url, profile_description}) {
+export function new_user_obj({user_id, username, image_url, profile_description, timestamp}) {
     if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
     else if (!username) throw new Error(`invalid username: "${username}"`)
     else if (!image_url) throw new Error(`invalid image_url: "${image_url}"`)
+    else if (!timestamp) throw new Error(`invalid timestamp: "${timestamp}"`)
 
-    return { user_id, username, image_url, profile_description }
+    return { user_id, username, image_url, profile_description, timestamp }
 }
 
 export const backend_url = 'http://localhost:8000'
