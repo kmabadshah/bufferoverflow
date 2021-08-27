@@ -11,6 +11,16 @@ export function new_user_obj({user_id, username, image_url, profile_description,
     return { user_id, username, image_url, profile_description, timestamp }
 }
 
+export function new_notification_obj({notification_id, notification_title, notification_link, timestamp, user_id}) {
+    if (!notification_id) throw new Error(`invalid notification_id: "${notification_id}"`)
+    else if (!notification_title) throw new Error(`invalid notification_title: "${notification_title}"`)
+    else if (!notification_link) throw new Error(`invalid notification_link: "${notification_link}"`)
+    else if (!timestamp) throw new Error(`invalid timestamp: "${timestamp}"`)
+    else if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
+
+    return {notification_id, notification_title, notification_link, timestamp, user_id}
+}
+
 export const backend_url = 'http://localhost:8000'
 const github_client_id = "24bf0d137961d6038ffb"
 const github_client_secret = '9698017268cd16f3b72dd169646826ac0924dba4'

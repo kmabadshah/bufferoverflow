@@ -1,5 +1,5 @@
 import React from 'react';
-import {fetch_and_store_token, get_user_info} from './utilities'
+import {fetch_and_store_token, get_user_info, new_notification_obj} from './utilities'
 import {Link, useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions} from '../index.js'
@@ -23,8 +23,6 @@ export default function Home() {
     const [profile_icon_clicked, set_profile_icon_clicked] = React.useState(true)
     const history = useHistory()
 
-    // const notifications = useSelector(store => store.notifications)
-
     return (
         <div className={`flex flex-col h-screen container mx-auto`}>
             <div id='navbar' className={`flex justify-between border border-red-900`}>
@@ -36,12 +34,7 @@ export default function Home() {
 
                     {notification_icon_clicked && (
                         <div id='notification_dialog' tabIndex={-1} className={`flex flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
-                            {[...Array(10)]/* loop over notifications */.map((notification, i) =>
-                                <Notification
-                                    key={i/* notification.notification_id goes here*/}
-                                    notification={null/* notification object goes here */}
-                                />
-                            )}
+                            <Notifications />
                         </div>
                     )}
                     </div>
@@ -73,14 +66,25 @@ export default function Home() {
         )
     }
 
-    function Notification() {
-        // func_args: notification object
 
-        return (
-            <button className={`notification_button`} onClick={() => null /* handle_notification_click(notification) */}>
-                <h1 className={`notification_title`}>This is a notification</h1>
+    function Notifications() {
+        const notifications = [...Array(10)].map(() => new_notification_obj({
+            notification_id: 10,
+            notification_title: `Somebody replied to your post`,
+            notification_link: `http://google.com`,
+            timestamp: new Date(`2021-08-27T08:02:00.490Z`) / 1000,
+            user_id: 12,
+        }))
+
+        return notifications.map(({notification_title, timestamp, notification_id, notification_link}, i) => (
+            <button className={`notification_button flex justify-end`}
+                onClick={() => handle_notification_click(notification_link)}
+                key={i /*notification_id*/}
+            >
+                <h1 className={`notification_title`}>{notification_title}</h1>
+                <p>{timestamp}</p>
             </button>
-        )
+        ))
     }
 
     function handle_go_to_profile_click() {
@@ -100,7 +104,7 @@ export default function Home() {
         //   notification_id: 10,
         //   notification_title: Somebody replied to your post,
         //   notification_link: 20,
-        //   timestamp: 2021-08-27 08:02:00.490562+00,
+        //   timestamp: 2021-08-27T08:02:00.490Z,
         //   user_id: 12,
         // }
 
