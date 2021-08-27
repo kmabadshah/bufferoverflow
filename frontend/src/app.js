@@ -2,6 +2,7 @@ import React from 'react';
 import Enter from './components/enter';
 import Home from './components/home';
 import User from './components/user';
+import Question from './components/question';
 import AskQuestion from './components/ask_question';
 import axios from 'axios';
 import NotFound from './components/not_found';
@@ -93,6 +94,7 @@ export default function App() {
             <Route exact path={`/`}> <Home/> </Route>
             <Route path={`/users/:user_id`}> <User /> </Route>
             <Route path={`/ask_question`}> <AskQuestion /> </Route>
+            <Route path={`/questions/:question_id`}> <Question /> </Route>
             <Route path={`/`}> <NotFound/> </Route>
         </Switch>
     </Router>

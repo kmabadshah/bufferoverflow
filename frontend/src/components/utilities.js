@@ -21,6 +21,23 @@ export function new_notification_obj({notification_id, notification_title, notif
     return {notification_id, notification_title, notification_link, timestamp, user_id}
 }
 
+
+     // question_id serial primary key,
+     // title varchar(100) unique not null,
+     // description varchar(1000) unique not null,
+     // user_id int,
+     // timestamp timestamptz default current_timestamp not null,
+
+export function new_question_obj({ question_id, title, description, user_id, timestamp }) {
+    if (!question_id) throw new Error(`invalid question_id: "${question_id}"`)
+    else if (!title) throw new Error(`invalid title: "${title}"`)
+    else if (!description) throw new Error(`invalid description: "${description}"`)
+    else if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
+    else if (!timestamp) throw new Error(`invalid timestamp: "${timestamp}"`)
+
+    return { question_id, title, description, user_id, timestamp }
+}
+
 export const backend_url = 'http://localhost:8000'
 const github_client_id = "24bf0d137961d6038ffb"
 const github_client_secret = '9698017268cd16f3b72dd169646826ac0924dba4'
