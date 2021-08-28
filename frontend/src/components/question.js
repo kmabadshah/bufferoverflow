@@ -9,7 +9,7 @@ import React from 'react'
  * row-1: title
  * row-2: timestamp
  * row-3: vote_counter on the left, description on the right
- * row-4(far-right): user_image, username
+ * row-4: answer_button on the left, (user_image, username) on the right
  * row-5: all_answers
  *
  * one answer has the following sections
