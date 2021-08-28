@@ -1,4 +1,7 @@
 import React from 'react'
+import {backend_url} from './utilities'
+import {useSelector} from 'react-redux'
+import axios from 'axios'
 
 /*
  *
@@ -13,6 +16,8 @@ import React from 'react'
 
 
 export default function AskQuestion() {
+    const current_user = useSelector(store => store.users.current_user)
+
     return (
         <form className={`flex flex-col my-10 mx-10 h-screen brder border-red-900`} method={`post`} onSubmit={handle_submit}>
             {/* row-1 */}
@@ -29,7 +34,7 @@ export default function AskQuestion() {
         </form>
     )
 
-    function handle_submit(e) {
+    async function handle_submit(e) {
         e.preventDefault()
 
         let [question_title, question_description] = Object.values(e.target)
@@ -42,5 +47,21 @@ export default function AskQuestion() {
 
         // submit the question
         // go to the questions/{question_id} page
+
+        let question_obj = {
+            title: question_title,
+            description: question_description,
+            user_id: current_user.user_id
+        }
+
+        try {
+            const res = await axios.post(`${backend_url}/questions`, question_obj)
+            console.log(res)
+        } catch(e) {
+            if (e.response)
+                console.log("REQUEST ERROR: ", e.response)
+            else
+                console.log("ERROR: ", e)
+        }
     }
 }

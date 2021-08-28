@@ -1,10 +1,14 @@
-const express = require('express')
-const axios = require('axios')
+import express from 'express'
+import axios from 'axios'
+import pg_promise from 'pg-promise'
+import user_create_conditionaly_async from './route_methods/users.js'
+import {question_create_async, question_get_async} from './route_methods/questions.js'
+
 const app = express()
 const port = 8000
 
-const pgp = require('pg-promise')()
-const db = pgp('postgres://awkward:awk@localhost:5432/bufferoverflow')
+const pgp = pg_promise()
+export const db = pgp('postgres://awkward:awk@localhost:5432/bufferoverflow')
 
 app.use(express.json())
 
@@ -44,51 +48,16 @@ app.post('/cors', async(req, res) => {
     }
 })
 
-app.post('/users', async (req, res) =>  {
-    try{
-        // get the post data BEGIN
-        let {username, image_url, profile_description} = req.body
-        if (!username || !image_url) {
-            return res.status(400).send('missing fields')
-        }
 
-        profile_description = profile_description || ""
-        // get the post data END
+
+app.post(`/users`, user_create_conditionaly_async)
+
+
+app.post(`/questions`, question_create_async)
+app.get(`/questions/:question_id`, question_get_async)
 
 
 
-        // check if the user already exists BEGIN
-        let db_res = await db.oneOrNone(`
-            select * from users where username=$1
-            or image_url=$2
-            or profile_description=$3
-        `, [username, image_url, profile_description])
-        if (db_res) {
-            return res.status(200).send(db_res)
-        }
-        // check if the user already exists END
 
 
-
-        // insert and return user BEGIN
-        await db.none(`
-            insert into users (username, image_url, profile_description)
-            values ($1, $2, $3)
-        `, [username, image_url, profile_description])
-
-        db_res = await db.one(`
-            select * from users
-            where username=$1
-        `, [username])
-
-        res.status(200).send(db_res)
-        // insert and return user END
-    } catch(e) {
-        console.log("ERROR: ", e)
-        res.status(500).send()
-    }
-})
-
-app.listen(port, () => {
-    console.log(`Listening at http://localhost:${port}`)
-})
+app.listen(port, () => console.log(`listening on ${port}`))
