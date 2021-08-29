@@ -4,6 +4,9 @@ import App from './app.js';
 import {configureStore, createSlice} from '@reduxjs/toolkit'
 import {Provider} from 'react-redux'
 
+import './index.css';
+import './tailwind.css';
+
 export const {reducer: extras_reducer, actions: extras_actions} = createSlice({
     name: 'extras',
     initialState: {

@@ -3,6 +3,7 @@ import {backend_url} from './utilities'
 import {useSelector} from 'react-redux'
 import axios from 'axios'
 import {useHistory} from 'react-router-dom'
+import {Navbar} from './utilities'
 
 /*
  *
@@ -21,19 +22,22 @@ export default function AskQuestion() {
     const history = useHistory()
 
     return (
-        <form className={`flex flex-col my-10 mx-10 h-screen brder border-red-900`} method={`post`} onSubmit={handle_submit}>
-            {/* row-1 */}
-            <h1 className={`text-center text-5xl`}>Ask a question</h1>
+        <div  className={`flex flex-col mx-10 h-screen brder border-red-900`} >
+            <Navbar />
+            <form method={`post`} onSubmit={handle_submit}>
+                {/* row-1 */}
+                <h1 className={`text-center text-5xl mt-10`}>Ask a question</h1>
 
-            {/* row-2 */}
-            <input name={`question_title`}  placeholder={`Question title goes here`} className={`border border-red-900  mt-10 w-full h-20`} type={`text`} />
+                {/* row-2 */}
+                <input name={`question_title`}  placeholder={`Question title goes here`} className={`border border-red-900  mt-10 w-full h-20`} type={`text`} />
 
-            {/* row-3 */}
-            <textarea name={`question_title`} className={`w-full mt-10 h-1/2 border border-red-900`} placeholder={`Question description goes here`}></textarea>
+                {/* row-3 */}
+                <textarea name={`question_title`} className={`w-full mt-10 h-1/2 border border-red-900`} placeholder={`Question description goes here`}></textarea>
 
-            {/* row-4 */}
-            <button type={`submit`} className={`w-full p-5 bg-green-300 mt-5 hover:bg-green-400`}>Submit</button>
-        </form>
+                {/* row-4 */}
+                <button type={`submit`} className={`w-full p-5 bg-green-300 mt-5 hover:bg-green-400`}>Submit</button>
+            </form>
+        </div>
     )
 
     async function handle_submit(e) {
@@ -48,10 +52,6 @@ export default function AskQuestion() {
                 return
             }
 
-            // submit the question
-            // go to the questions/{question_id} page
-            // when user visits / fetch all the questions and display
-
             let question_obj = {
                 title: question_title,
                 description: question_description,
@@ -59,6 +59,7 @@ export default function AskQuestion() {
             }
 
             const res = await axios.post(`${backend_url}/questions`, question_obj)
+            console.log(res)
 
             if (res.status !== 200) {
                 return

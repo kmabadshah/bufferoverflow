@@ -10,8 +10,6 @@ import {get_user_info_async, backend_url, new_user_obj} from './components/utili
 import { Switch, Route, BrowserRouter as Router, useHistory } from 'react-router-dom';
 import {extras_actions, users_actions} from './index'
 import {useSelector, useDispatch} from 'react-redux'
-import './index.css';
-import './tailwind.css';
 
 export default function App() {
     const history = useHistory()
