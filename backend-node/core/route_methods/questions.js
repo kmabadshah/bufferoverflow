@@ -56,7 +56,24 @@ async function question_create_async(req, res) {
 
 
 async function question_get_async(req, res) {
+    // make the request to database
+    // check if the id is valid
+    // if not valid, send 400 with `invalid id`
+    // get the question
+    // return the question with 200
+
     const question_id = req.params.question_id
+
+    let db_res = await db.oneOrNone(`
+        select * from questions
+        where question_id=$1
+    `, [question_id])
+
+    if (!db_res) {
+        return res.status(400).send(`invalid id`)
+    }
+
+    res.status(200).send(db_res)
 }
 
 export {question_create_async, question_get_async}

@@ -2,6 +2,7 @@ import React from 'react'
 import {backend_url} from './utilities'
 import {useSelector} from 'react-redux'
 import axios from 'axios'
+import {useHistory} from 'react-router-dom'
 
 /*
  *
@@ -17,6 +18,7 @@ import axios from 'axios'
 
 export default function AskQuestion() {
     const current_user = useSelector(store => store.users.current_user)
+    const history = useHistory()
 
     return (
         <form className={`flex flex-col my-10 mx-10 h-screen brder border-red-900`} method={`post`} onSubmit={handle_submit}>
@@ -35,28 +37,36 @@ export default function AskQuestion() {
     )
 
     async function handle_submit(e) {
-        e.preventDefault()
-
-        let [question_title, question_description] = Object.values(e.target)
-        question_title = question_title.value
-        question_description = question_description.value
-
-        if (!question_title || !question_description) {
-            return
-        }
-
-        // submit the question
-        // go to the questions/{question_id} page
-
-        let question_obj = {
-            title: question_title,
-            description: question_description,
-            user_id: current_user.user_id
-        }
-
         try {
+            e.preventDefault()
+
+            let [question_title, question_description] = Object.values(e.target)
+            question_title = question_title.value
+            question_description = question_description.value
+
+            if (!question_title || !question_description) {
+                return
+            }
+
+            // submit the question
+            // go to the questions/{question_id} page
+            // when user visits / fetch all the questions and display
+
+            let question_obj = {
+                title: question_title,
+                description: question_description,
+                user_id: current_user.user_id
+            }
+
             const res = await axios.post(`${backend_url}/questions`, question_obj)
-            console.log(res)
+
+            if (res.status !== 200) {
+                return
+            }
+
+            question_obj = res.data
+            history.push(`questions/${question_obj.question_id}`)
+
         } catch(e) {
             if (e.response)
                 console.log("REQUEST ERROR: ", e.response)

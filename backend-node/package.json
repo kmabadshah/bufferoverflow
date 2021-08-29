@@ -9,5 +9,11 @@
     "express-fileupload": "^1.2.1",
     "pg-promise": "^10.11.0"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "jest": "^27.1.0"
+  },
+  "scripts": {
+      "test": "jest"
+  }
 }
