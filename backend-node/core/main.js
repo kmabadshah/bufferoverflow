@@ -2,7 +2,7 @@ import express from 'express'
 import axios from 'axios'
 import pg_promise from 'pg-promise'
 import user_create_conditionaly_async from './route_methods/users.js'
-import {question_create_async, question_get_async} from './route_methods/questions.js'
+import {question_create_async, question_get_async, increment_or_decrement_vote_async} from './route_methods/questions.js'
 
 const app = express()
 const port = 8000
@@ -54,10 +54,9 @@ app.post(`/users`, user_create_conditionaly_async)
 
 
 app.post(`/questions`, question_create_async)
+app.get(`/increment_vote/questions/:question_id`, (req, res) => increment_or_decrement_vote_async(req, res, `increment`))
+app.get(`/decrement_vote/questions/:question_id`, (req, res) => increment_or_decrement_vote_async(req, res,`decrement`))
 app.get(`/questions/:question_id`, question_get_async)
-
-
-
 
 
 app.listen(port, () => console.log(`listening on ${port}`))
