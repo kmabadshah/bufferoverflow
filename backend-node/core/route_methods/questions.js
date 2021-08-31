@@ -121,8 +121,3 @@ export async function question_get_async(req, res) {
 
 
 
-// TODO: refactor both of the above functions, they're basically doing the same thing
-//
-//
-//
-//

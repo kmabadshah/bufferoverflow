@@ -27,6 +27,7 @@ export default function Question() {
     const [page_dont_exist, set_page_dont_exist] = React.useState(false)
     const [question_data, set_question_data] = React.useState()
     const [upvoted_or_downvoted, set_upvoted_or_downvoted] = React.useState(null)
+    const [show_answer_dialog, set_show_answer_dialog] = React.useState(false)
     const {question_id} = useParams()
     const current_user = useSelector(store => store.users.current_user)
 
@@ -63,9 +64,9 @@ export default function Question() {
                 <p>at: {question_data.timestamp}</p>
             </div>
 
-            {/* vote counter */}
+            {/* vote counter and description */}
             <div className={`flex mt-20`}>
-                <div className={`flex flex-col align-center mr-20 border border-red-900`}>
+                <div className={`flex flex-col align-center border border-red-900`}>
                     {/* vote_up_icon */}
                     <button onClick={handle_vote_up_click}>vote_up</button>
 
@@ -77,10 +78,71 @@ export default function Question() {
                 </div>
 
                 {/* question_description */}
-                <div>{question_data.description}</div>
+                <div className={`ml-20`}>{question_data.description}</div>
             </div>
+
+            <div className={`flex mt-40 ml-40`}>
+                <button onClick={handle_answer_click}>answer_button</button>
+                <div className={`h-16 w-16 ml-auto flex items-center border border-red-900`}>
+                    <p className={`text-center`}>usrimg</p>
+                </div>
+                <button className={`ml-5`} onClick={() => handle_username_click(current_user.uesr_id)}>{current_user.username}</button>
+            </div>
+
+            {/*
+                answer dialog
+                has the following sections
+                textarea for inputting text
+                submit button
+                cancel button
+            */}
+            {show_answer_dialog && <form onSubmit={handle_answer_submit} className={`ml-40 mt-10 flex flex-col`}>
+                <textarea className={` border border-red-900  w-full`} rows={8}></textarea>
+
+                <div className={`flex mt-3`}>
+                    <button className={`border ml-auto border-red-900  `} onClick={handle_answer_cancel_click}>Cancel</button>
+                    <button className={`border border-red-900  ml-5`}>Submit</button>
+                </div>
+            </form>}
         </div>
     )
+
+    async function handle_username_click(user_id) {
+        // loading=on
+        // history.push() to /users/{username.user_id}
+        // loading=off
+    }
+
+    async function handle_answer_click() {
+        // show the answer dialog if closed
+        // hide the answer dialog if open
+
+        set_show_answer_dialog(prev => !prev)
+    }
+
+    async function handle_answer_submit(e) {
+        e.preventDefault()
+
+        // [*] build the answer object
+        // [*] send the answer into datbase
+        // [*] POST /answers/{user_id}
+        // [ ] save the result in state
+
+        let answer_obj = {
+            text: e.target[0].value,
+            user_id: current_user.user_id,
+            question_id: question_data.question_id
+        }
+
+        const res = await axios.post(`${backend_url}/answers`, answer_obj)
+
+        set_show_answer_dialog(false)
+    }
+
+    async function handle_answer_cancel_click() {
+        // hide the dialog
+        set_show_answer_dialog(false)
+    }
 
     async function handle_vote_up_click() {
         // denied voting if already upvoted or already downvoted
@@ -135,3 +197,9 @@ export default function Question() {
         set_question_data(res.data)
     }
 }
+
+
+
+
+
+

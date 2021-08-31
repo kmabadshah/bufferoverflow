@@ -40,6 +40,17 @@ export function new_question_obj({ question_id, title, description, user_id, tim
     return { question_id, title, description, user_id, timestamp }
 }
 
+export function new_answer_obj({answer_id, text, user_id, question_id, vote_count, timestamp}) {
+    if (!answer_id) throw new Error(`invalid answer_id: ${answer_id}`)
+    else if (!text) throw new Error(`invalid text: ${text}`)
+    else if (!user_id) throw new Error(`invalid user_id: ${user_id}`)
+    else if (!question_id) throw new Error(`invalid question_id: ${question_id}`)
+    else if (!vote_count) throw new Error(`invalid vote_count: ${vote_count}`)
+    else if (!timestamp) throw new Error(`invalid timestamp: ${timestamp}`)
+
+    return { answer_id, text, user_id, question_id, vote_count, timestamp }
+}
+
 
 export async function fetch_token_async(string_before_api_token) {
     if (!string_before_api_token) return null
