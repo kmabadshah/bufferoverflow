@@ -45,7 +45,7 @@ export function new_answer_obj({answer_id, text, user_id, question_id, vote_coun
     else if (!text) throw new Error(`invalid text: ${text}`)
     else if (!user_id) throw new Error(`invalid user_id: ${user_id}`)
     else if (!question_id) throw new Error(`invalid question_id: ${question_id}`)
-    else if (!vote_count) throw new Error(`invalid vote_count: ${vote_count}`)
+    else if (vote_count !== 0 && !vote_count) throw new Error(`invalid vote_count: ${vote_count}`)
     else if (!timestamp) throw new Error(`invalid timestamp: ${timestamp}`)
 
     return { answer_id, text, user_id, question_id, vote_count, timestamp }

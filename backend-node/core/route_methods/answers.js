@@ -36,3 +36,18 @@ export async function answer_create_async(req, res) {
     res.status(200).send(db_res)
 }
 
+export async function answer_get_async(req, res) {
+    const question_id = req.params.question_id
+    console.log(question_id)
+
+    const db_res = await db.manyOrNone(`
+        select * from answers
+        where question_id=$1
+    `, [question_id])
+
+    if (!db_res) {
+        res.status(400).send(`invalid question_id`)
+    }
+
+    res.status(200).send(db_res)
+}

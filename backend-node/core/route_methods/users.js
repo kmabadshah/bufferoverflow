@@ -1,6 +1,6 @@
 import {db} from '../main.js'
 
-async function create_users_conditionally(req, res) {
+export default async function create_users_conditionally(req, res) {
     /*
      *
      * create a user if not exists,
@@ -52,5 +52,3 @@ async function create_users_conditionally(req, res) {
     }
 }
 
-
-export default create_users_conditionally

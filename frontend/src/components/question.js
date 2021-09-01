@@ -1,7 +1,8 @@
 import React from 'react'
 import {useParams} from 'react-router-dom'
 import axios from 'axios'
-import {backend_url, Navbar} from './utilities'
+import {backend_url, Navbar, new_answer_obj} from './utilities'
+import Answer from './answer'
 import {useSelector} from 'react-redux'
 
 /*
@@ -26,19 +27,29 @@ export default function Question() {
     const [loading, set_loading] = React.useState(true)
     const [page_dont_exist, set_page_dont_exist] = React.useState(false)
     const [question_data, set_question_data] = React.useState()
-    const [upvoted_or_downvoted, set_upvoted_or_downvoted] = React.useState(null)
+    const [question_upvoted_or_downvoted, set_question_upvoted_or_downvoted] = React.useState(null)
     const [show_answer_dialog, set_show_answer_dialog] = React.useState(false)
+    const [answers, set_answers] = React.useState([])
     const {question_id} = useParams()
     const current_user = useSelector(store => store.users.current_user)
 
     React.useEffect(() => {
         (async () => {
             try {
-                const res = await axios.get(`${backend_url}/questions/${question_id}`)
+                // get the question
+                let res = await axios.get(`${backend_url}/questions/${question_id}`)
 
                 set_question_data(res.data)
+
+                // get the answers
+                // GET /answers/{question_id}
+                //
+                res = await axios.get(`${backend_url}/answers/${res.data.question_id}`)
+                set_answers(res.data)
+
                 set_loading(false)
             } catch(e) {
+                console.log(`ERROR: `, e)
                 set_page_dont_exist(true)
                 set_loading(false)
                 return
@@ -68,13 +79,13 @@ export default function Question() {
             <div className={`flex mt-20`}>
                 <div className={`flex flex-col align-center border border-red-900`}>
                     {/* vote_up_icon */}
-                    <button onClick={handle_vote_up_click}>vote_up</button>
+                    <button onClick={handle_question_vote_up_click}>vote_up</button>
 
                     {/* vote_count */}
                     <p className={`text-center`}>{question_data.vote_count}</p>
 
                     {/* vote down icon */}
-                    <button onClick={handle_vote_down_click}>vote_down</button>
+                    <button onClick={handle_question_vote_down_click}>vote_down</button>
                 </div>
 
                 {/* question_description */}
@@ -104,19 +115,27 @@ export default function Question() {
                     <button className={`border border-red-900  ml-5`}>Submit</button>
                 </div>
             </form>}
+
+            {/*
+              * one answer has the following sections
+              * row-1: vote_counter on the left, description on the right
+              * row-2(far-right): user_image, username
+            */}
+
+            {answers.map(answer => (
+                <Answer answer_obj={answer} />
+            ))}
         </div>
     )
 
+
     async function handle_username_click(user_id) {
-        // loading=on
         // history.push() to /users/{username.user_id}
-        // loading=off
     }
 
     async function handle_answer_click() {
         // show the answer dialog if closed
         // hide the answer dialog if open
-
         set_show_answer_dialog(prev => !prev)
     }
 
@@ -126,7 +145,7 @@ export default function Question() {
         // [*] build the answer object
         // [*] send the answer into datbase
         // [*] POST /answers/{user_id}
-        // [ ] save the result in state
+        // [*] save the result in state
 
         let answer_obj = {
             text: e.target[0].value,
@@ -136,6 +155,7 @@ export default function Question() {
 
         const res = await axios.post(`${backend_url}/answers`, answer_obj)
 
+        set_answers(prev => [...prev, new_answer_obj(res.data)])
         set_show_answer_dialog(false)
     }
 
@@ -144,7 +164,7 @@ export default function Question() {
         set_show_answer_dialog(false)
     }
 
-    async function handle_vote_up_click() {
+    async function handle_question_vote_up_click() {
         // denied voting if already upvoted or already downvoted
         //
         // make the request to backend api
@@ -152,13 +172,24 @@ export default function Question() {
         // get the response
         // update the local question_data object
 
-        if (upvoted_or_downvoted === `upvoted`)
+        if (question_upvoted_or_downvoted === `upvoted`)
         {
             return
         }
         else {
-            set_upvoted_or_downvoted(`upvoted`)
+            set_question_upvoted_or_downvoted(`upvoted`)
         }
+
+
+        return
+
+// TODO: set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
+// store the response in local state
+// in useEffect(), pull from GET /already_voted_questions/{question_id}/{user_id}
+// and store it in local state
+// when user tries to upvote, check the state value if the vote_flag == `upvoted`
+// if yes, then do nothing
+// otherwise GET /increment_vote/questions/{question_id}
 
         const res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
 
@@ -170,7 +201,7 @@ export default function Question() {
     }
 
 
-    async function handle_vote_down_click() {
+    async function handle_question_vote_down_click() {
         // denied downvote if vote_count is zero
         // denied voting if already upvoted or already downvoted
         //
@@ -179,13 +210,12 @@ export default function Question() {
         // get the response
         // update the local question_data object
 
-        if (question_data.vote_count === 0 ||
-            upvoted_or_downvoted === `downvoted`)
+        if (question_upvoted_or_downvoted === `downvoted`)
         {
             return
         }
         else {
-            set_upvoted_or_downvoted(`downvoted`)
+            set_question_upvoted_or_downvoted(`downvoted`)
         }
 
         const res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
@@ -197,8 +227,6 @@ export default function Question() {
         set_question_data(res.data)
     }
 }
-
-
 
 
 
