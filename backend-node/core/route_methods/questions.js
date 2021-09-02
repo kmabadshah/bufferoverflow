@@ -94,7 +94,6 @@ export async function increment_or_decrement_vote_async(req, res, flag) {
 }
 
 
-
 export async function question_get_async(req, res) {
     // make the request to database
     // check if the id is valid

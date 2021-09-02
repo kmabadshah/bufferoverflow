@@ -16,7 +16,6 @@ export async function answer_create_async(req, res) {
     `, [ans_obj.text])
 
     if (db_res) {
-        console.log(db_res)
         return res.status(400).send(`duplicate answer`)
     }
 
@@ -38,7 +37,6 @@ export async function answer_create_async(req, res) {
 
 export async function answer_get_async(req, res) {
     const question_id = req.params.question_id
-    console.log(question_id)
 
     const db_res = await db.manyOrNone(`
         select * from answers

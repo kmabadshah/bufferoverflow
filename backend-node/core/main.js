@@ -4,6 +4,7 @@ import pg_promise from 'pg-promise'
 import user_create_conditionaly_async from './route_methods/users.js'
 import {question_create_async, question_get_async, increment_or_decrement_vote_async} from './route_methods/questions.js'
 import {answer_create_async, answer_get_async} from './route_methods/answers.js'
+import {already_voted_questions_create_async, already_voted_questions_get_async} from './route_methods/already_voted.js'
 
 const app = express()
 const port = 8000
@@ -62,5 +63,8 @@ app.get(`/questions/:question_id`, question_get_async)
 
 app.post(`/answers`, answer_create_async)
 app.get(`/answers/:question_id`, answer_get_async)
+
+app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, already_voted_questions_create_async)
+app.get(`/already_voted_questions/:question_id/:user_id`, already_voted_questions_get_async)
 
 app.listen(port, () => console.log(`listening on ${port}`))

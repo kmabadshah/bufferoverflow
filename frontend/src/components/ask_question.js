@@ -59,7 +59,6 @@ export default function AskQuestion() {
             }
 
             const res = await axios.post(`${backend_url}/questions`, question_obj)
-            console.log(res)
 
             if (res.status !== 200) {
                 return

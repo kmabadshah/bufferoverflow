@@ -27,7 +27,7 @@ export default function Question() {
     const [loading, set_loading] = React.useState(true)
     const [page_dont_exist, set_page_dont_exist] = React.useState(false)
     const [question_data, set_question_data] = React.useState()
-    const [question_upvoted_or_downvoted, set_question_upvoted_or_downvoted] = React.useState(null)
+    const [question_vote_flag, set_question_vote_flag] = React.useState(null)
     const [show_answer_dialog, set_show_answer_dialog] = React.useState(false)
     const [answers, set_answers] = React.useState([])
     const {question_id} = useParams()
@@ -37,15 +37,24 @@ export default function Question() {
         (async () => {
             try {
                 // get the question
-                let res = await axios.get(`${backend_url}/questions/${question_id}`)
+                const qres = await axios.get(`${backend_url}/questions/${question_id}`)
+                set_question_data(qres.data)
 
-                set_question_data(res.data)
+                // get the aleady_voted_questions list
+                // GET /already_voted_questions/{question_id}/{user_id}
+                // if status === 200, continue
+                let res = await axios.get(
+                    `${backend_url}/already_voted_questions/${qres.data.question_id}/${current_user.user_id}`,
+                    {validateStatus: (status) => status < 500}
+                )
+                if (res.status === 200) {
+                    set_question_vote_flag(res.data.vote_flag)
+                }
 
                 // get the answers
                 // GET /answers/{question_id}
-                //
-                res = await axios.get(`${backend_url}/answers/${res.data.question_id}`)
-                set_answers(res.data)
+                const ares = await axios.get(`${backend_url}/answers/${qres.data.question_id}`)
+                set_answers(ares.data)
 
                 set_loading(false)
             } catch(e) {
@@ -79,7 +88,7 @@ export default function Question() {
             <div className={`flex mt-20`}>
                 <div className={`flex flex-col align-center border border-red-900`}>
                     {/* vote_up_icon */}
-                    <button onClick={handle_question_vote_up_click}>vote_up</button>
+                    <button onClick={handle_question_vote_up_click}>vote_up {question_vote_flag === `upvoted` && `^`}</button>
 
                     {/* vote_count */}
                     <p className={`text-center`}>{question_data.vote_count}</p>
@@ -165,39 +174,33 @@ export default function Question() {
     }
 
     async function handle_question_vote_up_click() {
-        // denied voting if already upvoted or already downvoted
-        //
-        // make the request to backend api
-        // GET /increment_vote/questions/{id}
-        // get the response
-        // update the local question_data object
+        try {
+            // denied voting if already upvoted
+            //
+            // make the request to backend api
+            // GET /increment_vote/questions/{id}
+            // get the response
+            // update the local question_data object
 
-        if (question_upvoted_or_downvoted === `upvoted`)
-        {
-            return
-        }
-        else {
-            set_question_upvoted_or_downvoted(`upvoted`)
-        }
+            if (question_vote_flag === `upvoted`)
+            {
+                return
+            }
+            else
+            {
+                // set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
+                const vote_flag = `upvoted`
+                let res = await axios.get(`${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}/${vote_flag}`)
+                set_question_vote_flag(res.data.vote_flag)
+            }
 
-
-        return
-
-// TODO: set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
-// store the response in local state
-// in useEffect(), pull from GET /already_voted_questions/{question_id}/{user_id}
-// and store it in local state
-// when user tries to upvote, check the state value if the vote_flag == `upvoted`
-// if yes, then do nothing
-// otherwise GET /increment_vote/questions/{question_id}
-
-        const res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
-
-        if (res.status !== 200) {
-            return
+            const res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
+            set_question_data(res.data)
         }
 
-        set_question_data(res.data)
+        catch(e) {
+            console.log(e)
+        }
     }
 
 
@@ -210,21 +213,21 @@ export default function Question() {
         // get the response
         // update the local question_data object
 
-        if (question_upvoted_or_downvoted === `downvoted`)
-        {
-            return
-        }
-        else {
-            set_question_upvoted_or_downvoted(`downvoted`)
-        }
+        // if (question_upvoted_or_downvoted === `downvoted`)
+        // {
+        //     return
+        // }
+        // else {
+        //     set_question_upvoted_or_downvoted(`downvoted`)
+        // }
 
-        const res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+        // const res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
 
-        if (res.status !== 200) {
-            return
-        }
+        // if (res.status !== 200) {
+        //     return
+        // }
 
-        set_question_data(res.data)
+        // set_question_data(res.data)
     }
 }
 
