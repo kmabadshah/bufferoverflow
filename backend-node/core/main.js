@@ -5,6 +5,8 @@ import user_create_conditionaly_async from './route_methods/users.js'
 import {question_create_async, question_get_async, increment_or_decrement_vote_async} from './route_methods/questions.js'
 import {answer_create_async, answer_get_async} from './route_methods/answers.js'
 import {already_voted_questions_create_async, already_voted_questions_get_async} from './route_methods/already_voted.js'
+import exws from 'express-ws'
+import { WebSocketServer } from 'ws'
 
 const app = express()
 const port = 8000
@@ -23,6 +25,14 @@ app.use((req, res, next) => {
     })
     next()
 })
+
+
+
+
+
+
+
+
 
 
 // handle outbound client requests
@@ -67,4 +77,32 @@ app.get(`/answers/:question_id`, answer_get_async)
 app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, already_voted_questions_create_async)
 app.get(`/already_voted_questions/:question_id/:user_id`, already_voted_questions_get_async)
 
-app.listen(port, () => console.log(`listening on ${port}`))
+// app.listen(port, () => console.log(`listening on ${port}`))
+
+
+
+
+
+
+
+
+const wsServer = new WebSocketServer({ noServer: true, clientTracking: true });
+wsServer.on('connection', socket => {
+    wsServer.clients.forEach(cl => {
+        cl.send(`someone joined the server`)
+    })
+
+    socket.on(`close`, socket => {
+        wsServer.clients.forEach(cl => {
+            cl.send(`someone left the server`)
+        })
+    })
+});
+
+
+const server = app.listen(8000, console.log(`listening on 8000`));
+server.on('upgrade', (request, socket, head) => {
+    wsServer.handleUpgrade(request, socket, head, socket => {
+        wsServer.emit('connection', socket, request);
+    });
+});

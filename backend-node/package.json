@@ -7,13 +7,15 @@
     "axios": "^0.21.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
-    "pg-promise": "^10.11.0"
+    "express-ws": "^5.0.2",
+    "pg-promise": "^10.11.0",
+    "ws": "^8.2.1"
   },
   "type": "module",
   "devDependencies": {
     "jest": "^27.1.0"
   },
   "scripts": {
-      "test": "jest"
+    "test": "jest"
   }
 }

@@ -94,7 +94,7 @@ export default function Question() {
                     <p className={`text-center`}>{question_data.vote_count}</p>
 
                     {/* vote down icon */}
-                    <button onClick={handle_question_vote_down_click}>vote_down</button>
+                    <button onClick={handle_question_vote_down_click}>vote_down {question_vote_flag === `downvoted` && `v`}</button>
                 </div>
 
                 {/* question_description */}
@@ -205,29 +205,33 @@ export default function Question() {
 
 
     async function handle_question_vote_down_click() {
-        // denied downvote if vote_count is zero
-        // denied voting if already upvoted or already downvoted
-        //
-        // make the request to backend api
-        // GET /increment_vote/questions/{id}
-        // get the response
-        // update the local question_data object
+        try {
+            // denied voting if already downvoted
+            //
+            // make the request to backend api
+            // GET /increment_vote/questions/{id}
+            // get the response
+            // update the local question_data object
 
-        // if (question_upvoted_or_downvoted === `downvoted`)
-        // {
-        //     return
-        // }
-        // else {
-        //     set_question_upvoted_or_downvoted(`downvoted`)
-        // }
+            if (question_vote_flag === `downvoted`)
+            {
+                return
+            }
+            else
+            {
+                // set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
+                const vote_flag = `downvoted`
+                let res = await axios.get(`${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}/${vote_flag}`)
+                set_question_vote_flag(res.data.vote_flag)
+            }
 
-        // const res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+            const res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
+            set_question_data(res.data)
 
-        // if (res.status !== 200) {
-        //     return
-        // }
-
-        // set_question_data(res.data)
+        }
+        catch(e) {
+            console.log(e)
+        }
     }
 }
 

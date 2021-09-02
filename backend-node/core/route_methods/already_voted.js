@@ -17,6 +17,7 @@ export async function already_voted_questions_create_async(req, res) {
         }
 
 
+        /* question_id check */
         let db_res = await db.oneOrNone(`
             select * from questions
             where question_id=$1
@@ -27,6 +28,7 @@ export async function already_voted_questions_create_async(req, res) {
         }
 
 
+        /* user_id check */
         db_res = await db.oneOrNone(`
             select * from users
             where user_id=$1
@@ -39,18 +41,37 @@ export async function already_voted_questions_create_async(req, res) {
 
 
 
-        // insert into table alread_voted_questions
-        await db.none(`
-            insert into already_voted_questions
-            (user_id, question_id, vote_flag)
-            values ($1, $2, $3)
+        // check if already exists
+        const exists = await db.oneOrNone(`
+            select * from already_voted_questions
+            where user_id=$1 and question_id=$2 and vote_flag=$3
         `, [user_id, question_id, vote_flag])
+
+        if (!exists)
+        {
+            // insert into table
+            await db.none(`
+                insert into already_voted_questions
+                (user_id, question_id, vote_flag)
+                values ($1, $2, $3)
+            `, [user_id, question_id, vote_flag])
+        }
+        else
+        {
+            // update existing table
+            await db.none(`
+                update already_voted_questions
+                set vote_flag=$1
+                where user_id=$2 and question_id=$3
+            `, [vote_flag, user_id, question_id])
+        }
 
 
         db_res = await db.one(`
             select * from already_voted_questions
-            where user_id=$1 and question_id=$2 and vote_flag=$3
-        `, [user_id, question_id, vote_flag])
+            where user_id=$1 and question_id=$2
+        `, [user_id, question_id])
+
 
         res.status(200).send(db_res)
     }
