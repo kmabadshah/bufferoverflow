@@ -85,24 +85,126 @@ app.get(`/already_voted_questions/:question_id/:user_id`, already_voted_question
 
 
 
+let id = 0
+const get_random_id = () => {
+    return ++id
+}
 
-const wsServer = new WebSocketServer({ noServer: true, clientTracking: true });
-wsServer.on('connection', socket => {
-    wsServer.clients.forEach(cl => {
-        cl.send(`someone joined the server`)
+const clients = { }
+
+const wss = new WebSocketServer({ noServer: true, clientTracking: true });
+wss.on('connection', socket => {
+    const current_client_id = get_random_id()
+    clients[current_client_id] = socket
+
+    Object.keys(clients).forEach(clid => {
+        if (parseInt(clid, 10) !== current_client_id)
+        {
+            clients[clid].send(`client number ${current_client_id} has joined the server`)
+        }
     })
 
-    socket.on(`close`, socket => {
-        wsServer.clients.forEach(cl => {
-            cl.send(`someone left the server`)
+    socket.on(`close`, () => {
+        Object.keys(clients).forEach(clid => {
+            if (parseInt(clid, 10) !== current_client_id)
+            {
+                clients[clid].send(`client no ${current_client_id} has left the server`)
+            }
         })
+
+        delete clients[current_client_id]
+    })
+
+
+    // client1->server->client2
+    socket.on(`message`, (data, isBinary) => {
+        try {
+            const {to, message} = JSON.parse(data)
+
+            if (clients[to])
+            {
+                clients[to].send(`from client ${current_client_id}: ${message}`)
+            }
+            else
+            {
+                socket.send(`client doesnt exist`)
+            }
+        } catch(e) {
+            if (e.name === `SyntaxError`)
+            {
+                console.log(`Error: received invalid json message`)
+                socket.send(`Error: received invalid json message`)
+            }
+            else
+            {
+                console.log(e)
+            }
+        }
     })
 });
 
 
 const server = app.listen(8000, console.log(`listening on 8000`));
 server.on('upgrade', (request, socket, head) => {
-    wsServer.handleUpgrade(request, socket, head, socket => {
-        wsServer.emit('connection', socket, request);
+    wss.handleUpgrade(request, socket, head, socket => {
+        wss.emit('connection', socket, request);
     });
 });
+
+
+
+
+
+
+                    // TODO:
+// convert all backend api to use websockets
+// expose only one endpoint, that will upgrade the connection
+// afterwards, all communication should happen with json and websocket messages
+// json schema(from client to server):
+// {
+//  action: POST,
+//  table: answers,
+//  data: {
+//    text: this is an answer,
+//    user_id: 10,
+//    question_id: 20,
+//    vote_count: 0
+//  }
+// }
+//
+// json schema(server to answer owner)
+// {
+//   action: OK || ERROR,
+//   data: `invalid_user_id`
+// }
+//
+// json schema(from server to question owner):
+// {
+//  action: POSTED,
+//  table: answers,
+//  data: {
+//    question_id: 20,
+//    user_id: 10,
+//    text: this is an answer,
+//    vote_count: 0,
+//    answer_id: 99,
+//    timestamp: 9375987345
+//  }
+// }
+//
+//
+//
+// if the websocket connection is dropped from the client
+// the frontend will show a dialog that the client is now offline
+// and the frontend will try to connect to the server in intervals.
+// once the connection is ok, remove the dialog.
+//
+// in the offline period, the user cannot click or change anything.
+// all changes are discarded.
+//
+//
+// establish a json schema for frontend-backend communication
+//
+// convert all frontend code to use websockets
+// in the beginning, the frontend will create a websocket connection
+// with the backend. Afterwards all communication will happen with json
