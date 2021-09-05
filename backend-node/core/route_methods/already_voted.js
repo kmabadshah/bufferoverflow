@@ -1,12 +1,26 @@
 import {db} from '../main.js'
 
-export async function already_voted_questions_create_async(req, res) {
+
+export async function already_voted_table_create_async(req, res, table_name_singular)
+{
     try {
+        // check if table_name_singular is valid
+        if (table_name_singular !== `answer` && table_name_singular !== `question`)
+        {
+            console.log(`Invalid argument table_name_singular`)
+            return
+        }
+
+        const table_name_plural = table_name_singular + 's'
+
         // check if question_id and user_id is valid
         // if not, 400 with `invalid question id` or `invalid user id`
 
-        const {question_id, user_id, vote_flag} = req.params
-        if (!question_id || !user_id || !vote_flag) {
+        const {user_id, vote_flag} = req.params
+        let row_id = req.params.question_id || req.params.answer_id
+
+        if (!row_id || !user_id || !vote_flag)
+        {
             return res.status(400).send(`missing fields`)
         }
 
@@ -17,14 +31,14 @@ export async function already_voted_questions_create_async(req, res) {
         }
 
 
-        /* question_id check */
+        /* object_id check */
         let db_res = await db.oneOrNone(`
-            select * from questions
-            where question_id=$1
-        `, [question_id])
+            select * from ${table_name_plural}
+            where ${table_name_singular}_id=$1
+        `, [row_id])
 
         if (!db_res) {
-            return res.status(400).send(`invalid question_id`)
+            return res.status(400).send(`invalid ${table_name_singular}_id`)
         }
 
 
@@ -43,65 +57,69 @@ export async function already_voted_questions_create_async(req, res) {
 
         // check if already exists
         const exists = await db.oneOrNone(`
-            select * from already_voted_questions
-            where user_id=$1 and question_id=$2
-        `, [user_id, question_id])
+            select * from already_voted_${table_name_plural}
+            where user_id=$1 and ${table_name_singular}_id=$2
+        `, [user_id, row_id])
 
         if (!exists)
         {
             // insert into table
             await db.none(`
-                insert into already_voted_questions
-                (user_id, question_id, vote_flag)
+                insert into already_voted_${table_name_plural}
+                (user_id, ${table_name_singular}_id, vote_flag)
                 values ($1, $2, $3)
-            `, [user_id, question_id, vote_flag])
+            `, [user_id, row_id, vote_flag])
         }
         else
         {
             // update existing table
             await db.none(`
-                update already_voted_questions
+                update already_voted_${table_name_plural}
                 set vote_flag=$1
-                where user_id=$2 and question_id=$3
-            `, [vote_flag, user_id, question_id])
+                where user_id=$2 and ${table_name_singular}_id=$3
+            `, [vote_flag, user_id, row_id])
         }
 
 
         db_res = await db.one(`
-            select * from already_voted_questions
-            where user_id=$1 and question_id=$2
-        `, [user_id, question_id])
+            select * from already_voted_${table_name_plural}
+            where user_id=$1 and ${table_name_singular}_id=$2
+        `, [user_id, row_id])
 
 
         res.status(200).send(db_res)
     }
 
     catch(e) {
-        console.log(`${e.stack}`)
+        console.trace(e.stack)
     }
 }
 
 
-
-
-
-
-
-export async function already_voted_questions_get_async(req, res) {
+export async function already_voted_table_get_async(req, res, table_name_singular) {
     try {
-        const {question_id, user_id} = req.params
+        // check if table_name_singular is valid
+        if (table_name_singular !== `answer` && table_name_singular !== `question`)
+        {
+            console.log(`Invalid argument table_name_singular`)
+            return
+        }
 
-        if (!question_id || !user_id) {
+        const user_id = req.params.user_id
+        const row_id = req.params.question_id || req.params.answer_id
+        const table_name_plural = table_name_singular + `s`
+
+        if (!row_id || !user_id) {
             return res.status(400).send(`missing fields`)
         }
 
         const db_res = await db.oneOrNone(`
-            select * from already_voted_questions
-            where question_id=$1 and user_id=$2
-        `, [question_id, user_id])
+            select * from already_voted_${table_name_plural}
+            where ${table_name_singular}_id=$1 and user_id=$2
+        `, [row_id, user_id])
 
         if (!db_res) {
-            return res.status(400).send(`invalid user_id or question_id`)
+            return res.status(400).send(`invalid user_id or ${table_name_singular}_id`)
         }
 
         res.status(200).send(db_res)
@@ -116,114 +134,3 @@ export async function already_voted_questions_get_async(req, res) {
 
 
 
-
-
-
-
-
-export async function already_voted_answers_create_async(req, res) {
-    console.log(`CREATE already_voted_answers_async`)
-
-    const {answer_id, user_id, vote_flag} = req.params
-    if (!answer_id || !user_id || !vote_flag)
-    {
-        return res.status(400).send(`missing fields`)
-    }
-
-    const valid_vote_flags = [`upvoted`, `downvoted`]
-    if (!valid_vote_flags.includes(vote_flag))
-    {
-        return res.status(400).send(`invalid vote flag`)
-    }
-
-    /* answer_id check */
-    let db_res = await db.oneOrNone(`
-            select * from answers
-            where answer_id=$1
-        `, [answer_id])
-
-    if (!db_res)
-    {
-        return res.status(400).send(`invalid answer_id`)
-    }
-
-    /* user_id check */
-    db_res = await db.oneOrNone(`
-            select * from users
-            where user_id=$1
-        `, [user_id])
-
-    if (!db_res)
-    {
-        return res.status(400).send(`invalid user_id`)
-    }
-
-
-
-    // check if already exists
-    const exists = await db.oneOrNone(`
-            select * from already_voted_answers
-            where user_id=$1 and answer_id=$2
-        `, [user_id, answer_id])
-
-    if (!exists)
-    {
-        // insert into table
-        await db.none(`
-                insert into already_voted_answers
-                (user_id, answer_id, vote_flag)
-                values ($1, $2, $3)
-            `, [user_id, answer_id, vote_flag])
-    }
-    else
-    {
-        // update existing table
-        await db.none(`
-                update already_voted_answers
-                set vote_flag=$1
-                where user_id=$2 and answer_id=$3
-            `, [vote_flag, user_id, answer_id])
-    }
-
-
-    db_res = await db.one(`
-        select * from already_voted_answers
-        where user_id=$1 and answer_id=$2
-    `, [user_id, answer_id])
-
-    res.status(200).send(db_res)
-}
-
-
-
-
-
-
-
-
-
-
-export async function already_voted_answers_get_async(req, res) {
-    try {
-        const {answer_id, user_id} = req.params
-
-        if (!answer_id || !user_id) {
-            return res.status(400).send(`missing fields`)
-        }
-
-        const db_res = await db.oneOrNone(`
-            select * from already_voted_answers
-            where answer_id=$1 and user_id=$2
-        `, [answer_id, user_id])
-
-        if (!db_res) {
-            return res.status(400).send(`invalid user_id or answer_id`)
-        }
-
-        res.status(200).send(db_res)
-    }
-
-    catch(e) {
-        console.trace(e)
-    }
-}

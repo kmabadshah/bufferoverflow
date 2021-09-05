@@ -6,10 +6,8 @@ import {question_create_async, question_get_async, increment_or_decrement_questi
 import {answer_create_async, answer_get_async, increment_or_decrement_answer_vote_async} from './route_methods/answers.js'
 
 import {
-  already_voted_questions_create_async,
-  already_voted_questions_get_async,
-  already_voted_answers_create_async,
-  already_voted_answers_get_async,
+  already_voted_table_create_async,
+  already_voted_table_get_async,
 } from './route_methods/already_voted.js'
 
 import exws from 'express-ws'
@@ -64,27 +62,28 @@ app.post('/cors', async(req, res) => {
 
 
 
+/* USERS SECTION */
 app.post(`/users`, user_create_conditionaly_async)
 
-
+/* QUESTIONS SECTION */
 app.post(`/questions`, question_create_async)
 app.get(`/questions/:question_id`, question_get_async)
 
 app.get(`/increment_vote/questions/:question_id`, (req, res) => increment_or_decrement_question_vote_async(req, res, `increment`))
 app.get(`/decrement_vote/questions/:question_id`, (req, res) => increment_or_decrement_question_vote_async(req, res,`decrement`))
 
-app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, already_voted_questions_create_async)
-app.get(`/already_voted_questions/:question_id/:user_id`, already_voted_questions_get_async)
+app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `question`))
+app.get(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `question`))
 
-
+/* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
 app.get(`/answers/:question_id`, answer_get_async)
 
 app.get(`/increment_vote/answers/:answer_id`, (req, res) => increment_or_decrement_answer_vote_async(req, res, `increment`))
 app.get(`/decrement_vote/answers/:answer_id`, (req, res) => increment_or_decrement_answer_vote_async(req, res,`decrement`))
 
-app.get(`/already_voted_answers/:answer_id/:user_id/:vote_flag`, already_voted_answers_create_async)
-app.get(`/already_voted_answers/:answer_id/:user_id`, already_voted_answers_get_async)
+app.get(`/already_voted_answers/:answer_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `answer`))
+app.get(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `answer`))
 
 
 app.listen(port, () => console.log(`listening on ${port}`))
