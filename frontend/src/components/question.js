@@ -24,14 +24,16 @@ import {useSelector} from 'react-redux'
 */
 
 export default function Question() {
-    const [loading, set_loading] = React.useState(true)
-    const [page_dont_exist, set_page_dont_exist] = React.useState(false)
-    const [question_data, set_question_data] = React.useState()
-    const [question_vote_flag, set_question_vote_flag] = React.useState(null)
-    const [show_answer_dialog, set_show_answer_dialog] = React.useState(false)
-    const [answers, set_answers] = React.useState([])
-    const {question_id} = useParams()
-    const current_user = useSelector(store => store.users.current_user)
+    const
+    [loading, set_loading] = React.useState(true),
+    [page_dont_exist, set_page_dont_exist] = React.useState(false),
+    [question_data, set_question_data] = React.useState(),
+    [question_vote_flag, set_question_vote_flag] = React.useState(null),
+    [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
+    [answers, set_answers] = React.useState([]),
+    current_user = useSelector(store => store.users.current_user),
+    {question_id} = useParams()
+
 
     React.useEffect(() => {
         (async () => {
@@ -54,15 +56,15 @@ export default function Question() {
                 // get the answers
                 // GET /answers/{question_id}
                 const ares = await axios.get(`${backend_url}/answers/${qres.data.question_id}`)
+                ares.data.sort(sort_by_vote_count_and_timestamp)
                 set_answers(ares.data)
 
-                set_loading(false)
             } catch(e) {
                 console.log(`ERROR: `, e)
                 set_page_dont_exist(true)
-                set_loading(false)
-                return
             }
+
+            set_loading(false)
         })()
     }, [])
 
@@ -132,11 +134,36 @@ export default function Question() {
             */}
 
             {answers.map(answer => (
-                <Answer answer_obj={answer} />
+                <Answer answer_obj={answer} set_page_dont_exist={set_page_dont_exist} />
             ))}
         </div>
     )
 
+
+    function sort_by_vote_count_and_timestamp(a, b) {
+        // sort by vote count, highest first
+        if (a.vote_count < b.vote_count)
+        {
+            return 1
+        }
+
+        else if (a.vote_count === b.vote_count)
+        {
+            // sort by timestamp, highest(newest) first
+            const ta = new Date(a.timestamp)
+            const tb = new Date(b.timestamp)
+
+            if (ta > tb)
+            {
+                return 1
+            }
+
+            return 0
+        }
+
+        return 0
+
+    }
 
     async function handle_username_click(user_id) {
         // history.push() to /users/{username.user_id}
@@ -225,7 +252,7 @@ export default function Question() {
                 set_question_vote_flag(res.data.vote_flag)
             }
 
-            const res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
+            const res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
             set_question_data(res.data)
 
         }

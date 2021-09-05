@@ -1,49 +1,110 @@
 import React from 'react'
+import axios from 'axios'
+import {backend_url} from './utilities'
+import {useSelector} from 'react-redux'
 
-export default function Answer({answer_obj}) {
-    const [answer_upvoted_or_downvoted, set_answer_upvoted_or_downvoted] = React.useState(false)
+export default function Answer({answer_obj, set_page_dont_exist}) {
+  const
+  [answer_vote_flag, set_answer_vote_flag] = React.useState(false),
+  [answer_data, set_answer_data] = React.useState(answer_obj),
+  current_user = useSelector(store => store.users.current_user)
 
-    return (
-        <div className={`flex mt-40`} key={answer_obj.answer_id}>
-            <div className={`flex flex-col align-center border border-red-900`}>
-                {/* vote_up_icon */}
-                <button onClick={handle_answer_vote_up_click}>vote_up</button>
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get(`
+                ${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}
+                `, {validateStatus: (status) => status < 500})
 
-                {/* vote_count */}
-                <p className={`text-center`}>{answer_obj.vote_count}</p>
+        if (res.status === 200) {
+          set_answer_vote_flag(res.data.vote_flag)
+        }
+      }
+      catch(e)
+      {
+        console.dir(e)
+        set_page_dont_exist(true)
+      }
+    })()
+  }, [])
 
-                {/* vote down icon */}
-                <button onClick={handle_answer_vote_down_click}>vote_down</button>
-            </div>
 
-            {/* answer text */}
-            <div className={`ml-20`}>{answer_obj.text}</div>
+  return (
+    <>
+      <div className={`flex mt-40`}>
+        <div className={`flex flex-col align-center border border-red-900`}>
+          {/* vote_up_icon */}
+          <button onClick={handle_answer_vote_up_click}>vote_up {answer_vote_flag === `upvoted` && `^`}</button>
+
+          {/* vote_count */}
+          <p className={`text-center`}>{answer_data.vote_count}</p>
+
+          {/* vote down icon */}
+          <button onClick={handle_answer_vote_down_click}>vote_down {answer_vote_flag === `downvoted` && `v`}</button>
         </div>
-    )
+
+        {/* answer text */}
+        <div className={`ml-20`}>{answer_data.text}</div>
+
+      </div>
+
+      <div className={`border border-red-900 flex justify-end`}>
+        <p>{answer_obj.timestamp}</p>
+      </div>
+    </>
+  )
 
 
-    async function handle_answer_vote_up_click() {
-        // check if already voted
-        // make the request to backend api
-        // GET /increment_vote/answers/{answer_id}
-        // update the local state
+  async function handle_answer_vote_up_click() {
+    try {
+      // denied voting if already upvoted
+      //
+      // set the vote flag -> GET /already_voted_answers/{answer_id}/{user_id}/{vote_flag}
+      // increment vote -> GET /increment_vote/answers/{answer_id}
+      // update the local state
 
-        if (answer_upvoted_or_downvoted) {
-            return
-        }
+      if (answer_vote_flag === `upvoted`)
+      {
+        return
+      }
 
-        set_answer_upvoted_or_downvoted(`upvoted`)
+      const vote_flag = `upvoted`
+      let res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+      set_answer_vote_flag(res.data.vote_flag)
+
+      res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
+      set_answer_data(res.data)
     }
-
-    async function handle_answer_vote_down_click() {
-        // check if already voted or vote count is zero
-        // make the request to backend api
-        // GET /increment_vote/answers/{answer_id}
-        // update the local state
-
-        if (answer_upvoted_or_downvoted) {
-            return
-        }
-        set_answer_upvoted_or_downvoted(`upvoted`)
+    catch(e)
+    {
+      console.dir(e)
     }
+  }
+
+  async function handle_answer_vote_down_click() {
+    try {
+      // denied voting if already downvoted
+      //
+      // set the vote flag -> GET /already_voted_answers/{answer_id}/{user_id}/{vote_flag}
+      // decrement vote -> GET /increment_vote/answers/{answer_id}
+      // update the local state
+
+      if (answer_vote_flag === `downvoted`)
+      {
+        return
+      }
+
+
+      const vote_flag = `downvoted`
+      let res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+      set_answer_vote_flag(res.data.vote_flag)
+
+      res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
+      set_answer_data(res.data)
+    }
+    catch(e)
+    {
+      console.dir(e)
+    }
+  }
 }

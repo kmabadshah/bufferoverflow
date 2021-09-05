@@ -43,8 +43,6 @@ export default async function create_users_conditionally(req, res) {
             select * from users
             where username=$1
         `, [username])
-
-        res.status(200).send(db_res)
         // insert and return user END
     } catch(e) {
         console.log("ERROR: ", e)

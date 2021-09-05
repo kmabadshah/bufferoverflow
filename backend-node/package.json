@@ -5,15 +5,18 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
+    "compression": "^1.7.4",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
     "express-ws": "^5.0.2",
+    "pako": "^2.0.4",
     "pg-promise": "^10.11.0",
     "ws": "^8.2.1"
   },
   "type": "module",
   "devDependencies": {
-    "jest": "^27.1.0"
+    "jest": "^27.1.0",
+    "safe-buffer": "^5.2.1"
   },
   "scripts": {
     "test": "jest"
