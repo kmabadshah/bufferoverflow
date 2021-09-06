@@ -31,11 +31,10 @@ export default function Question() {
     [question_vote_flag, set_question_vote_flag] = React.useState(null),
     [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
     [answers, set_answers] = React.useState([]),
+    [question_editable, set_question_editable] = React.useState(false),
     current_user = useSelector(store => store.users.current_user),
-    {question_id} = useParams()
-
-    // TODO: store answers and vote_flag in redux store
-    // otherwise we'll have to fetch everything if user navigates back to this page
+    {question_id} = useParams(),
+    ref = React.useRef()
 
     React.useEffect(() => {
         (async () => {
@@ -89,8 +88,8 @@ export default function Question() {
             </div>
 
             {/* vote counter and description */}
-            <div className={`flex mt-20`}>
-                <div className={`flex flex-col align-center border border-red-900`}>
+            <div className={`flex mt-20 boder border-red-900`}>
+                <div className={`flex flex-col align-center border border-red-900 h-[max-content]`}>
                     {/* vote_up_icon */}
                     <button onClick={handle_question_vote_up_click}>vote_up {question_vote_flag === `upvoted` && `^`}</button>
 
@@ -102,11 +101,24 @@ export default function Question() {
                 </div>
 
                 {/* question_description */}
-                <div className={`ml-20`}>{question_data.description}</div>
+                <div
+                    className={`ml-20 overflow-x-auto h-80 flex-grow`}
+                    ref={ref}
+                    contentEditable={question_editable}
+                    suppressContentEditableWarning={true}
+                >
+                    {question_data.description}
+                </div>
             </div>
 
             <div className={`flex mt-40 ml-40`}>
                 <button onClick={handle_answer_click}>answer_button</button>
+                <button
+                    className={`ml-[20px]`}
+                    onClick={question_editable ? handle_edit_question_submit_click : handle_edit_question_click }
+                >
+                    {question_editable ? `submit_button` : `edit_button`}
+                </button>
                 <div className={`h-16 w-16 ml-auto flex items-center border border-red-900`}>
                     <p className={`text-center`}>usrimg</p>
                 </div>
@@ -136,10 +148,49 @@ export default function Question() {
             */}
 
             {answers.map(answer => (
-                <Answer answer_obj={answer} set_page_dont_exist={set_page_dont_exist} />
+                <Answer answer_obj={answer} key={answer.answer_id} set_page_dont_exist={set_page_dont_exist} />
             ))}
         </div>
     )
+
+    async function handle_edit_question_click() {
+        // make the description editable
+        set_question_editable(true)
+        ref.current.focus()
+        ref.current.classList.add(`border`)
+        ref.current.classList.add(`border-red-900`)
+    }
+
+    async function handle_edit_question_submit_click() {
+        try {
+            if (!ref.current.textContent)
+            {
+                return
+            }
+
+            if (ref.current.textContent !== question_data.description)
+            {
+                const res = await axios.put(`${backend_url}/questions/${question_id}`, {description: ref.current.textContent})
+                if (res.status === 200)
+                {
+                    set_question_data(prev => { return {...prev, description: ref.current.textContent} })
+                }
+                else
+                {
+                    console.dir(res)
+                }
+            }
+
+            set_question_editable(false)
+            ref.current.blur()
+            ref.current.classList.remove(`border`)
+            ref.current.classList.remove(`border-red-900`)
+        }
+        catch(e)
+        {
+            console.dir(e)
+        }
+    }
 
 
     function sort_by_vote_count_and_timestamp(a, b) {

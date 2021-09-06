@@ -147,4 +147,3 @@ export default function Answer({answer_obj, set_page_dont_exist}) {
 
 
 
-// TODO: implement edit option for questions and answers

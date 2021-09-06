@@ -116,6 +116,23 @@ export async function question_get_async(req, res) {
 }
 
 
+export async function question_update_async(req, res) {
+  const question_id = req.params.question_id
+  const {description} = req.body
+
+  if (!description)
+  {
+    return res.status(400).send(`invalid description`)
+  }
+
+  const db_res = await db.none(`
+    update questions
+    set description=$1
+    where question_id=$2
+  `, [description, question_id])
+
+  return res.status(200).send(db_res)
+}
 
 
 export async function question_get_all_async(req, res) {

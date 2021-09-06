@@ -119,7 +119,7 @@ export async function already_voted_table_get_async(req, res, table_name_singula
         `, [row_id, user_id])
 
         if (!db_res) {
-            return res.status(400).send(`invalid user_id or ${table_name_singular}_id`)
+            return res.status(200).send([])
         }
 
         res.status(200).send(db_res)
