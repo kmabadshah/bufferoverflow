@@ -1,8 +1,8 @@
 import express from 'express'
 import axios from 'axios'
 import pg_promise from 'pg-promise'
-import user_create_conditionaly_async from './route_methods/users.js'
-import {question_create_async, question_get_async, increment_or_decrement_question_vote_async} from './route_methods/questions.js'
+import {user_create_conditionally_async} from './route_methods/users.js'
+import {question_create_async, question_get_async, question_get_all_async, increment_or_decrement_question_vote_async} from './route_methods/questions.js'
 import {answer_create_async, answer_get_async, increment_or_decrement_answer_vote_async} from './route_methods/answers.js'
 
 import {
@@ -63,10 +63,11 @@ app.post('/cors', async(req, res) => {
 
 
 /* USERS SECTION */
-app.post(`/users`, user_create_conditionaly_async)
+app.post(`/users`, user_create_conditionally_async)
 
 /* QUESTIONS SECTION */
 app.post(`/questions`, question_create_async)
+app.get(`/questions`, question_get_all_async)
 app.get(`/questions/:question_id`, question_get_async)
 
 app.get(`/increment_vote/questions/:question_id`, (req, res) => increment_or_decrement_question_vote_async(req, res, `increment`))

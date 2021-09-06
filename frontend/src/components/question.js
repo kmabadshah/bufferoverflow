@@ -34,6 +34,8 @@ export default function Question() {
     current_user = useSelector(store => store.users.current_user),
     {question_id} = useParams()
 
+    // TODO: store answers and vote_flag in redux store
+    // otherwise we'll have to fetch everything if user navigates back to this page
 
     React.useEffect(() => {
         (async () => {

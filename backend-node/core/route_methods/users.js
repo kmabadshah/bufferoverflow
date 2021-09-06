@@ -1,6 +1,6 @@
 import {db} from '../main.js'
 
-export default async function create_users_conditionally(req, res) {
+export async function user_create_conditionally_async(req, res) {
     /*
      *
      * create a user if not exists,
@@ -10,8 +10,8 @@ export default async function create_users_conditionally(req, res) {
 
     try{
         // get the post data BEGIN
-        let {username, image_url, profile_description} = req.body
-        if (!username || !image_url) {
+        let {username, image_url, profile_description, user_id} = req.body
+        if (!user_id && (!username || !image_url)) {
             return res.status(400).send('missing fields')
         }
 
@@ -25,7 +25,8 @@ export default async function create_users_conditionally(req, res) {
             select * from users where username=$1
             or image_url=$2
             or profile_description=$3
-        `, [username, image_url, profile_description])
+            or user_id=$4
+        `, [username, image_url, profile_description, user_id])
         if (db_res) {
             return res.status(200).send(db_res)
         }
@@ -43,6 +44,8 @@ export default async function create_users_conditionally(req, res) {
             select * from users
             where username=$1
         `, [username])
+
+        return res.status(200).send(db_res)
         // insert and return user END
     } catch(e) {
         console.log("ERROR: ", e)

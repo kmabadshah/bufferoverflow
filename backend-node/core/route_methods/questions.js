@@ -118,5 +118,15 @@ export async function question_get_async(req, res) {
 
 
 
+export async function question_get_all_async(req, res) {
+  const user_id = req.params.user_id
+
+  const db_res = await db.any(`
+    select * from questions
+  `)
+
+  return res.status(200).send(db_res)
+}
+
 
 

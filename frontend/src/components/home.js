@@ -1,9 +1,10 @@
 import React from 'react';
-import {new_question_obj} from './utilities'
+import {new_question_obj, backend_url} from './utilities'
 import {Link, useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions} from '../index.js'
 import {Navbar} from './utilities'
+import axios from 'axios'
 
 /*
  *
@@ -19,6 +20,23 @@ import {Navbar} from './utilities'
 export default function Home() {
     const dispatch = useDispatch()
     const history = useHistory()
+    const [questions, set_questions] = React.useState([])
+    const [loading, set_loading] = React.useState(true)
+
+    React.useState(() => {
+        (async () => {
+            try {
+                const res = await axios.get(`${backend_url}/questions`)
+                set_questions(res.data)
+            }
+            catch(e)
+            {
+                console.dir(e)
+            }
+
+            set_loading(false)
+        })()
+    }, [])
 
     return (
         <div className={`flex flex-col h-screen container mx-auto`}>
@@ -29,7 +47,7 @@ export default function Home() {
             <AskQuestionButton />
 
             {/* row-3 */}
-            <Questions />
+            {loading ? `loading...` : <Questions />}
         </div>
     );
 
@@ -62,14 +80,6 @@ export default function Home() {
          * poster's image at the left, the title at the middle, the timestamp at the right
          *
          * */
-
-        const questions = [...Array(10)].map(() => new_question_obj({
-            question_id: 10,
-            title: `This is a question about something that doesn't exist`,
-            description: `This is the description for the question about something that doesn't exist`,
-            user_id: 11,
-            timestamp: new Date(`2021-08-27T08:02:00.490Z`) / 1000,
-        }))
 
         return (
             <div className={`flex flex-col boder border-red-900 mt-10`}>

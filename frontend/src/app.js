@@ -42,9 +42,9 @@ export default function App() {
             }
             catch(e) {
                 if (e.response)
-                    console.log("REQUEST ERROR: ", e.response)
+                    console.dir(e.response)
                 else
-                    console.log("ERROR: ", e)
+                    console.dir(e)
 
                 set_something_went_wrong(true)
             }
