@@ -32,6 +32,8 @@ export default function Question() {
     [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
     [answers, set_answers] = React.useState([]),
     [question_editable, set_question_editable] = React.useState(false),
+    [comments, set_comments] = React.useState([]),
+    [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
     current_user = useSelector(store => store.users.current_user),
     {question_id} = useParams(),
     ref = React.useRef()
@@ -60,6 +62,10 @@ export default function Question() {
                 ares.data.sort(sort_by_vote_count_and_timestamp)
                 set_answers(ares.data)
 
+                // get the comments
+                // GET /comments/{question_id}
+                const cres = await axios.get(`${backend_url}/comments/${qres.data.question_id}`)
+                set_comments(cres.data)
             } catch(e) {
                 console.log(`ERROR: `, e)
                 set_page_dont_exist(true)
@@ -119,10 +125,11 @@ export default function Question() {
                 >
                     {question_editable ? `submit_button` : `edit_button`}
                 </button>
+                <button className={`ml-5`} onClick={handle_comment_click}>comment_button</button>
                 <div className={`h-16 w-16 ml-auto flex items-center border border-red-900`}>
                     <p className={`text-center`}>usrimg</p>
                 </div>
-                <button className={`ml-5`} onClick={() => handle_username_click(current_user.uesr_id)}>{current_user.username}</button>
+                <button className={`ml-5`} onClick={() => handle_username_click(current_user.user_id)}>{current_user.username}</button>
             </div>
 
             {/*
@@ -132,11 +139,11 @@ export default function Question() {
                 submit button
                 cancel button
             */}
-            {show_answer_dialog && <form onSubmit={handle_answer_submit} className={`ml-40 mt-10 flex flex-col`}>
+            {(show_answer_dialog || show_comment_dialog) && <form onSubmit={show_answer_dialog ? handle_answer_submit_click : handle_comment_submit_click} className={`ml-40 mt-10 flex flex-col`}>
                 <textarea className={` border border-red-900  w-full`} rows={8}></textarea>
 
                 <div className={`flex mt-3`}>
-                    <button className={`border ml-auto border-red-900  `} onClick={handle_answer_cancel_click}>Cancel</button>
+                    <button className={`border ml-auto border-red-900  `} onClick={show_answer_dialog ? handle_answer_click : handle_comment_click}>Cancel</button>
                     <button className={`border border-red-900  ml-5`}>Submit</button>
                 </div>
             </form>}
@@ -152,6 +159,8 @@ export default function Question() {
             ))}
         </div>
     )
+
+    // TODO: show the question_comments under the question
 
     async function handle_edit_question_click() {
         // make the description editable
@@ -221,10 +230,39 @@ export default function Question() {
         // show the answer dialog if closed
         // hide the answer dialog if open
         set_show_answer_dialog(prev => !prev)
+        set_show_comment_dialog(false)
     }
 
-    async function handle_answer_submit(e) {
+    async function handle_comment_click() {
+        // show the answer dialog if closed
+        // hide the answer dialog if open
+        set_show_comment_dialog(prev => !prev)
+        set_show_answer_dialog(false)
+    }
+
+    async function handle_comment_submit_click(e) {
         e.preventDefault()
+
+        if (!e.target[0].value)
+        {
+            return
+        }
+
+        // POST /comments/{question_id}
+        const res = await axios.post(`${backend_url}/comments/${question_data.question_id}`, {
+            text: e.target[0].value
+        })
+
+        set_comments(prev => [...prev, res.data])
+    }
+
+    async function handle_answer_submit_click(e) {
+        e.preventDefault()
+
+        if (!e.target[0].value)
+        {
+            return
+        }
 
         // [*] build the answer object
         // [*] send the answer into datbase
@@ -240,11 +278,6 @@ export default function Question() {
         const res = await axios.post(`${backend_url}/answers`, answer_obj)
 
         set_answers(prev => [...prev, new_answer_obj(res.data)])
-        set_show_answer_dialog(false)
-    }
-
-    async function handle_answer_cancel_click() {
-        // hide the dialog
         set_show_answer_dialog(false)
     }
 
