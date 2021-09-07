@@ -138,15 +138,31 @@ export default function Question() {
                 textarea for inputting text
                 submit button
                 cancel button
-            */}
-            {(show_answer_dialog || show_comment_dialog) && <form onSubmit={show_answer_dialog ? handle_answer_submit_click : handle_comment_submit_click} className={`ml-40 mt-10 flex flex-col`}>
-                <textarea className={` border border-red-900  w-full`} rows={8}></textarea>
+                */}
+            {(show_answer_dialog || show_comment_dialog) && (
+                <form onSubmit={show_answer_dialog ? handle_answer_submit_click : handle_comment_submit_click} className={`ml-40 mt-10 flex flex-col`}>
+                    <textarea className={` border border-red-900  w-full`} rows={8}></textarea>
 
-                <div className={`flex mt-3`}>
-                    <button className={`border ml-auto border-red-900  `} onClick={show_answer_dialog ? handle_answer_click : handle_comment_click}>Cancel</button>
-                    <button className={`border border-red-900  ml-5`}>Submit</button>
-                </div>
-            </form>}
+                    <div className={`flex mt-3`}>
+                        <button className={`border ml-auto border-red-900  `} onClick={show_answer_dialog ? handle_answer_click : handle_comment_click}>Cancel</button>
+                        <button className={`border border-red-900  ml-5`}>Submit</button>
+                    </div>
+                </form>
+            )}
+
+            {/*
+            question comments section
+            comment {
+                comment_id
+                text
+                username
+                timestamp
+                votes
+            }
+            */}
+            <div className={`ml-40 mt-10`}>
+
+            </div>
 
             {/*
               * one answer has the following sections
@@ -160,7 +176,7 @@ export default function Question() {
         </div>
     )
 
-    // TODO: show the question_comments under the question
+    // TODO: display the question_comments under the question
 
     async function handle_edit_question_click() {
         // make the description editable
@@ -250,7 +266,8 @@ export default function Question() {
 
         // POST /comments/{question_id}
         const res = await axios.post(`${backend_url}/comments/${question_data.question_id}`, {
-            text: e.target[0].value
+            text: e.target[0].value,
+            user_id: current_user.user_id
         })
 
         set_comments(prev => [...prev, res.data])
