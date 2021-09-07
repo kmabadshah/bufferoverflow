@@ -1,11 +1,19 @@
-button {
+button 
+{
     @apply focus:outline-black;
 }
 
-.notification_description {
+.notification_description 
+{
     @apply text-justify;
 }
 
-.notification_button {
+.notification_button 
+{
     @apply m-3;
+}
+
+iframe 
+{
+    display: none !important;
 }

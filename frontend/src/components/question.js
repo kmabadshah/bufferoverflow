@@ -163,12 +163,7 @@ export default function Question() {
 
     async function handle_edit_question_submit_click() {
         try {
-            if (!ref.current.textContent)
-            {
-                return
-            }
-
-            if (ref.current.textContent !== question_data.description)
+            if (ref.current.textContent && ref.current.textContent !== question_data.description)
             {
                 const res = await axios.put(`${backend_url}/questions/${question_id}`, {description: ref.current.textContent})
                 if (res.status === 200)

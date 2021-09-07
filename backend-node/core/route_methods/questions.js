@@ -125,13 +125,13 @@ export async function question_update_async(req, res) {
     return res.status(400).send(`invalid description`)
   }
 
-  const db_res = await db.none(`
+  await db.none(`
     update questions
     set description=$1
     where question_id=$2
   `, [description, question_id])
 
-  return res.status(200).send(db_res)
+  return res.status(204).send()
 }
 
 

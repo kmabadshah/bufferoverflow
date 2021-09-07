@@ -52,4 +52,3 @@ export async function user_create_conditionally_async(req, res) {
         res.status(500).send()
     }
 }
-

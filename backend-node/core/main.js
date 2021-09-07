@@ -3,7 +3,7 @@ import axios from 'axios'
 import pg_promise from 'pg-promise'
 import {user_create_conditionally_async} from './route_methods/users.js'
 import {question_create_async, question_update_async, question_get_async, question_get_all_async, increment_or_decrement_question_vote_async} from './route_methods/questions.js'
-import {answer_create_async, answer_get_async, increment_or_decrement_answer_vote_async} from './route_methods/answers.js'
+import {answer_create_async, answer_update_async, answer_get_async, increment_or_decrement_answer_vote_async} from './route_methods/answers.js'
 
 import {
   already_voted_table_create_async,
@@ -80,6 +80,7 @@ app.get(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_
 /* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
 app.get(`/answers/:question_id`, answer_get_async)
+app.put(`/answers/:answer_id`, answer_update_async)
 
 app.get(`/increment_vote/answers/:answer_id`, (req, res) => increment_or_decrement_answer_vote_async(req, res, `increment`))
 app.get(`/decrement_vote/answers/:answer_id`, (req, res) => increment_or_decrement_answer_vote_async(req, res,`decrement`))
