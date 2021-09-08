@@ -2,9 +2,10 @@ import express from 'express'
 import axios from 'axios'
 import pg_promise from 'pg-promise'
 import {user_create_conditionally_async} from './route_methods/users.js'
-import {question_create_async, question_update_async, question_get_async, question_get_all_async, increment_or_decrement_question_vote_async} from './route_methods/questions.js'
-import {answer_create_async, answer_update_async, answer_get_async, increment_or_decrement_answer_vote_async} from './route_methods/answers.js'
-import {comment_create_async, comment_get_async} from './route_methods/comments.js'
+import {question_create_async, question_update_async, question_get_async, question_get_all_async} from './route_methods/questions.js'
+import {increment_or_decrement_table_vote_async} from './route_methods/shared.js'
+import {answer_create_async, answer_update_async, answer_get_async} from './route_methods/answers.js'
+import {comment_create_async, comment_get_async, comment_update_async} from './route_methods/comments.js'
 
 import {
   already_voted_table_create_async,
@@ -72,22 +73,23 @@ app.get(`/questions`, question_get_all_async)
 app.get(`/questions/:question_id`, question_get_async)
 app.put(`/questions/:question_id`, question_update_async)
 
-app.get(`/increment_vote/questions/:question_id`, (req, res) => increment_or_decrement_question_vote_async(req, res, `increment`))
-app.get(`/decrement_vote/questions/:question_id`, (req, res) => increment_or_decrement_question_vote_async(req, res,`decrement`))
+app.get(`/increment_vote/questions/:question_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `question`, `increment`))
+app.get(`/decrement_vote/questions/:question_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `question`, `decrement`))
 
 app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `question`))
 app.get(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `question`))
 
 app.post(`/comments/:question_id`, comment_create_async)
 app.get(`/comments/:question_id`, comment_get_async)
+app.put(`/comments/:comment_id`, comment_update_async)
 
 /* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
 app.get(`/answers/:question_id`, answer_get_async)
 app.put(`/answers/:answer_id`, answer_update_async)
 
-app.get(`/increment_vote/answers/:answer_id`, (req, res) => increment_or_decrement_answer_vote_async(req, res, `increment`))
-app.get(`/decrement_vote/answers/:answer_id`, (req, res) => increment_or_decrement_answer_vote_async(req, res,`decrement`))
+app.get(`/increment_vote/answers/:answer_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `answer`, `increment`))
+app.get(`/decrement_vote/answers/:answer_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `answer`, `decrement`))
 
 app.get(`/already_voted_answers/:answer_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `answer`))
 app.get(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `answer`))

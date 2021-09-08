@@ -1,8 +1,9 @@
 import React from 'react'
 import {useParams} from 'react-router-dom'
 import axios from 'axios'
-import {backend_url, Navbar, new_answer_obj} from './utilities'
+import {backend_url, Navbar, new_answer_obj, Br} from './utilities'
 import Answer from './answer'
+import QuestionComment from './question_comment'
 import {useSelector} from 'react-redux'
 
 /*
@@ -151,18 +152,14 @@ export default function Question() {
             )}
 
             {/*
-            question comments section
-            comment {
-                comment_id
-                text
-                username
-                timestamp
-                votes
-            }
+                comment has the following sections
+                an contentEditable div for typing
+                left side, vote_count and upvote
+                right side, username, timestamp
             */}
-            <div className={`ml-40 mt-10`}>
-
-            </div>
+            {comments.map(c => (
+                <QuestionComment comment_obj={c} key={c.comment_id} />
+            ))}
 
             {/*
               * one answer has the following sections
@@ -176,7 +173,7 @@ export default function Question() {
         </div>
     )
 
-    // TODO: display the question_comments under the question
+
 
     async function handle_edit_question_click() {
         // make the description editable
@@ -242,14 +239,14 @@ export default function Question() {
         // history.push() to /users/{username.user_id}
     }
 
-    async function handle_answer_click() {
+    function handle_answer_click() {
         // show the answer dialog if closed
         // hide the answer dialog if open
         set_show_answer_dialog(prev => !prev)
         set_show_comment_dialog(false)
     }
 
-    async function handle_comment_click() {
+    function handle_comment_click() {
         // show the answer dialog if closed
         // hide the answer dialog if open
         set_show_comment_dialog(prev => !prev)
@@ -259,43 +256,57 @@ export default function Question() {
     async function handle_comment_submit_click(e) {
         e.preventDefault()
 
-        if (!e.target[0].value)
-        {
-            return
+        try {
+            if (!e.target[0].value)
+            {
+                return
+            }
+
+            // POST /comments/{question_id}
+            const res = await axios.post(`${backend_url}/comments/${question_data.question_id}`, {
+                text: e.target[0].value,
+                user_id: current_user.user_id
+            })
+
+            set_comments(prev => [...prev, res.data])
+            handle_comment_click()
         }
-
-        // POST /comments/{question_id}
-        const res = await axios.post(`${backend_url}/comments/${question_data.question_id}`, {
-            text: e.target[0].value,
-            user_id: current_user.user_id
-        })
-
-        set_comments(prev => [...prev, res.data])
+        catch(e)
+        {
+            console.dir(e)
+        }
     }
 
     async function handle_answer_submit_click(e) {
         e.preventDefault()
 
-        if (!e.target[0].value)
+        try {
+            if (!e.target[0].value)
+            {
+                return
+            }
+
+            // [*] build the answer object
+            // [*] send the answer into datbase
+            // [*] POST /answers/{user_id}
+            // [*] save the result in state
+
+            let answer_obj = {
+                text: e.target[0].value,
+                user_id: current_user.user_id,
+                question_id: question_data.question_id
+            }
+
+            const res = await axios.post(`${backend_url}/answers`, answer_obj)
+
+            set_answers(prev => [...prev, new_answer_obj(res.data)])
+            set_show_answer_dialog(false)
+        }
+        catch(e)
         {
-            return
+            console.dir(e)
         }
 
-        // [*] build the answer object
-        // [*] send the answer into datbase
-        // [*] POST /answers/{user_id}
-        // [*] save the result in state
-
-        let answer_obj = {
-            text: e.target[0].value,
-            user_id: current_user.user_id,
-            question_id: question_data.question_id
-        }
-
-        const res = await axios.post(`${backend_url}/answers`, answer_obj)
-
-        set_answers(prev => [...prev, new_answer_obj(res.data)])
-        set_show_answer_dialog(false)
     }
 
     async function handle_question_vote_up_click() {
@@ -324,7 +335,7 @@ export default function Question() {
         }
 
         catch(e) {
-            console.log(e)
+            console.dir(e)
         }
     }
 
@@ -355,7 +366,7 @@ export default function Question() {
 
         }
         catch(e) {
-            console.log(e)
+            console.dir(e)
         }
     }
 }

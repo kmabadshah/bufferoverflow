@@ -17,3 +17,9 @@ iframe
 {
     display: none !important;
 }
+
+[placeholder]:empty::before {
+  content: 'hello';
+  background-color: red;
+  font-style:italic;
+}

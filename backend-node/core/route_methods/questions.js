@@ -54,45 +54,6 @@ export async function question_create_async(req, res) {
   // insert and return question END
 }
 
-export async function increment_or_decrement_question_vote_async(req, res, flag) {
-  // flag can only be `increment` or `decrement`
-  // get the question_id
-  // check if question_id is valid
-  // if not valid, send 400 with `invalid id`
-  // increment/decrement the question with question_id
-  // get the new question obj from db
-  // send 200 with question data
-
-  if (flag !== `increment` && flag !== `decrement`) {
-    console.log(`invalid flag argument: increment_or_decrement_vote_async()`)
-    return res.status(500)
-  }
-
-  const question_id = req.params.question_id
-
-  let db_res = await db.oneOrNone(`
-        select * from questions
-        where question_id=$1
-    `, [question_id])
-
-  if (!db_res) {
-    return res.status(400).send(`invalid id`)
-  }
-
-  await db.oneOrNone(`
-        update questions
-        set vote_count = vote_count ${flag === `increment` ? `+1` : `-1`}
-        where question_id=$1
-    `, [question_id])
-
-  db_res = await db.oneOrNone(`
-        select * from questions
-        where question_id=$1
-    `, [question_id])
-
-  res.status(200).send(db_res)
-}
-
 
 export async function question_get_async(req, res) {
   // make the request to database

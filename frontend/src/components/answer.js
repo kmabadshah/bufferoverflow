@@ -2,7 +2,7 @@
 
 import React from 'react'
 import axios from 'axios'
-import {backend_url} from './utilities'
+import {backend_url, Br} from './utilities'
 import {useSelector} from 'react-redux'
 import {useHistory} from 'react-router-dom'
 
@@ -85,13 +85,6 @@ export default function Answer({answer_obj, set_page_dont_exist}) {
   function handle_username_click() {
     history.push(`/users/${answer_user_data.user_id}`)
   }
-
-  function Br() {
-    return (
-      <div style={{flexBasis: `100%`, height: 0}}></div>
-    )
-  }
-
 
   function handle_edit_answer_click() {
     // editable=on

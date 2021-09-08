@@ -64,52 +64,6 @@ export async function answer_get_async(req, res) {
 
 
 
-export async function increment_or_decrement_answer_vote_async(req, res, flag) {
-  try {
-    // flag can only be `increment` or `decrement`
-    // get the answer_id
-    // check if answer_id is valid
-    // if not valid, send 400 with `invalid id`
-    // increment/decrement the answer with answer_id
-    // get the new answer obj from db
-    // send 200 with answer data
-
-    if (flag !== `increment` && flag !== `decrement`) {
-      console.log(`invalid flag argument: increment_or_decrement_vote_async()`)
-      return res.status(500)
-    }
-
-    const answer_id = req.params.answer_id
-
-    let db_res = await db.oneOrNone(`
-        select * from answers
-        where answer_id=$1
-    `, [answer_id])
-
-    if (!db_res) {
-      return res.status(400).send(`invalid id`)
-    }
-
-    await db.oneOrNone(`
-        update answers
-        set vote_count = vote_count ${flag === `increment` ? `+1` : `-1`}
-        where answer_id=$1
-    `, [answer_id])
-
-    db_res = await db.oneOrNone(`
-        select * from answers
-        where answer_id=$1
-    `, [answer_id])
-
-    res.status(200).send(db_res)
-  }
-  catch(e)
-  {
-    console.dir(e)
-    return res.status(500).send()
-  }
-}
-
 
 
 
