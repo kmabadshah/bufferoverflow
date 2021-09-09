@@ -3,10 +3,14 @@
         [*] TODO: implement the voting system
         [*] TODO: implement the logic for writing answers
 
-[] TODO: comment voting system
-[] TODO: only authorized users are able to edit questions,answers,comments
+[*] TODO: unvote a question
+[] TODO: unvote a answer
+
+[] TODO: backend api for comment voting system
+[] TODO: unvote a comment
+
+[] TODO: only authorized users should be able to edit questions,answers,comments
 
 []  TODO: implement the user profile page
 []  TODO: implement the notification system
-
 

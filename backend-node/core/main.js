@@ -10,6 +10,7 @@ import {comment_create_async, comment_get_async, comment_update_async} from './r
 import {
   already_voted_table_create_async,
   already_voted_table_get_async,
+  already_voted_table_delete_async,
 } from './route_methods/already_voted.js'
 
 import exws from 'express-ws'
@@ -78,6 +79,7 @@ app.get(`/decrement_vote/questions/:question_id`, (req, res) => increment_or_dec
 
 app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `question`))
 app.get(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `question`))
+app.delete(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `question`))
 
 app.post(`/comments/:question_id`, comment_create_async)
 app.get(`/comments/:question_id`, comment_get_async)

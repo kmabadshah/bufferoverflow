@@ -88,5 +88,3 @@ export async function comment_update_async(req, res) {
 
 // GET /increment_vote/comments/{comment_id}
 // export async function increment_or_decrement_
-// TODO: comment voting system
-// TODO: only authorized users are able to edit questions,answers,comments

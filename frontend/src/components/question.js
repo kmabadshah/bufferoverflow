@@ -22,22 +22,22 @@ import {useSelector} from 'react-redux'
  * row-1: vote_counter on the left, description on the right
  * row-2(far-right): user_image, username
  *
-*/
+ */
 
 export default function Question() {
     const
     [loading, set_loading] = React.useState(true),
-    [page_dont_exist, set_page_dont_exist] = React.useState(false),
-    [question_data, set_question_data] = React.useState(),
-    [question_vote_flag, set_question_vote_flag] = React.useState(null),
-    [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
-    [answers, set_answers] = React.useState([]),
-    [question_editable, set_question_editable] = React.useState(false),
-    [comments, set_comments] = React.useState([]),
-    [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
-    current_user = useSelector(store => store.users.current_user),
-    {question_id} = useParams(),
-    ref = React.useRef()
+        [page_dont_exist, set_page_dont_exist] = React.useState(false),
+        [question_data, set_question_data] = React.useState(),
+        [question_vote_flag, set_question_vote_flag] = React.useState(null),
+        [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
+        [answers, set_answers] = React.useState([]),
+        [question_editable, set_question_editable] = React.useState(false),
+        [comments, set_comments] = React.useState([]),
+        [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
+        current_user = useSelector(store => store.users.current_user),
+        {question_id} = useParams(),
+        ref = React.useRef()
 
     React.useEffect(() => {
         (async () => {
@@ -156,7 +156,7 @@ export default function Question() {
                 an contentEditable div for typing
                 left side, vote_count and upvote
                 right side, username, timestamp
-            */}
+                */}
             {comments.map(c => (
                 <QuestionComment comment_obj={c} key={c.comment_id} />
             ))}
@@ -165,7 +165,7 @@ export default function Question() {
               * one answer has the following sections
               * row-1: vote_counter on the left, description on the right
               * row-2(far-right): user_image, username
-            */}
+              */}
 
             {answers.map(answer => (
                 <Answer answer_obj={answer} key={answer.answer_id} set_page_dont_exist={set_page_dont_exist} />
@@ -309,64 +309,167 @@ export default function Question() {
 
     }
 
+
+
     async function handle_question_vote_up_click() {
         try {
-            // denied voting if already upvoted
-            //
-            // make the request to backend api
-            // GET /increment_vote/questions/{id}
-            // get the response
-            // update the local question_data object
+            const vote_flag = `upvoted`
+            let current_vote_count = question_data.vote_count
 
-            if (question_vote_flag === `upvoted`)
+            // not voted or already downvoted
+            if (!question_vote_flag || question_vote_flag === `downvoted`)
             {
-                return
-            }
-            else
-            {
+
                 // set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
-                const vote_flag = `upvoted`
-                let res = await axios.get(`${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}/${vote_flag}`)
-                set_question_vote_flag(res.data.vote_flag)
+                let res = await axios.get(
+                    backend_url
+                    +`/already_voted_questions/`
+                    +question_data.question_id+`/`
+                    +current_user.user_id+`/`
+                    +vote_flag
+                )
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+                set_question_vote_flag(vote_flag)
+
+                // increment counter
+                res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+
+                current_vote_count++;
+
+                // increment again
+                if (question_vote_flag === `downvoted`)
+                {
+                    res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
+                    if (res.status !== 204)
+                    {
+                        throw new Error(res)
+                    }
+
+                    current_vote_count++;
+                }
+
+                set_question_data({...question_data, vote_count: current_vote_count})
             }
 
-            const res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
-            set_question_data(res.data)
+            // when already upvoted
+            else if (question_vote_flag === `upvoted`)
+            {
+                // increment the counter
+                let res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+                set_question_data({...question_data, vote_count: question_data.vote_count-1})
+
+                // remove vote flag
+                res = await axios.delete(
+                    `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`
+                )
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+
+                set_question_vote_flag(null)
+            }
         }
 
         catch(e) {
-            console.dir(e)
+            console.log(`------------ERROR BEGIN-------------`)
+            console.trace(e)
+            console.dir(e.message)
+            console.log(`------------ERROR END---------------`)
         }
     }
 
 
+
+
+
     async function handle_question_vote_down_click() {
         try {
-            // denied voting if already downvoted
-            //
-            // make the request to backend api
-            // GET /increment_vote/questions/{id}
-            // get the response
-            // update the local question_data object
+            const vote_flag = `downvoted`
+            let current_vote_count = question_data.vote_count
 
-            if (question_vote_flag === `downvoted`)
+            // not voted or already upvoted
+            if (!question_vote_flag || question_vote_flag === `upvoted`)
             {
-                return
-            }
-            else
-            {
+
                 // set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
-                const vote_flag = `downvoted`
-                let res = await axios.get(`${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}/${vote_flag}`)
-                set_question_vote_flag(res.data.vote_flag)
+                let res = await axios.get(
+                    backend_url
+                    +`/already_voted_questions/`
+                    +question_data.question_id+`/`
+                    +current_user.user_id+`/`
+                    +vote_flag
+                )
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+                set_question_vote_flag(vote_flag)
+
+                // decrement counter
+                res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+
+                current_vote_count--;
+
+                // decrement again
+                if (question_vote_flag === `upvoted`)
+                {
+                    res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+                    if (res.status !== 204)
+                    {
+                        throw new Error(res)
+                    }
+
+                    current_vote_count--;
+                }
+
+                set_question_data({...question_data, vote_count: current_vote_count})
             }
 
-            const res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
-            set_question_data(res.data)
+            // when already downvoted
+            else if (question_vote_flag === `downvoted`)
+            {
+                // increment the counter
+                let res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+                set_question_data({...question_data, vote_count: question_data.vote_count + 1})
+
+                // remove vote flag
+                res = await axios.delete(
+                    `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`
+                )
+                if (res.status !== 204)
+                {
+                    throw new Error(res)
+                }
+
+                set_question_vote_flag(null)
+            }
 
         }
         catch(e) {
-            console.dir(e)
+            console.log(`------------ERROR BEGIN-------------`)
+            console.trace(e)
+            console.dir(e.message)
+            console.log(`------------ERROR END---------------`)
         }
     }
 }

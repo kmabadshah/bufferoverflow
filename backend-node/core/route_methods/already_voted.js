@@ -80,18 +80,12 @@ export async function already_voted_table_create_async(req, res, table_name_sing
             `, [vote_flag, user_id, row_id])
         }
 
-
-        db_res = await db.one(`
-            select * from already_voted_${table_name_plural}
-            where user_id=$1 and ${table_name_singular}_id=$2
-        `, [user_id, row_id])
-
-
-        res.status(200).send(db_res)
+        res.status(204).send()
     }
 
     catch(e) {
-        console.trace(e.stack)
+        console.dir(e)
+        res.status(500).send()
     }
 }
 
@@ -119,18 +113,49 @@ export async function already_voted_table_get_async(req, res, table_name_singula
         `, [row_id, user_id])
 
         if (!db_res) {
-            return res.status(200).send([])
+            return res.status(400).send(`invalid ${table_name_singular}_id or user_id`)
         }
 
         res.status(200).send(db_res)
     }
 
     catch(e) {
-        console.trace(e)
+        console.dir(e)
+        res.status(500).send()
     }
 }
 
 
 
 
+// GET `/already_voted_questions/:question_id/:user_id/`
+export async function already_voted_table_delete_async(req, res, table_name_singular) {
+    try {
+        // check if table_name_singular is valid
+        if (table_name_singular !== `answer` && table_name_singular !== `question`)
+        {
+            console.log(`Invalid argument table_name_singular`)
+            return
+        }
 
+        const user_id = req.params.user_id
+        const row_id = req.params.question_id || req.params.answer_id
+        const table_name_plural = table_name_singular + `s`
+
+        if (!row_id || !user_id) {
+            return res.status(400).send(`missing fields`)
+        }
+
+        await db.any(`
+            delete from already_voted_${table_name_plural}
+            where ${table_name_singular}_id=$1 and user_id=$2
+        `, [row_id, user_id])
+
+        res.status(204).send()
+    }
+
+    catch(e) {
+        console.dir(e)
+        res.status(500).send()
+    }
+}
