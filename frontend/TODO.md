@@ -4,7 +4,7 @@
         [*] TODO: implement the logic for writing answers
 
 [*] TODO: unvote a question
-[] TODO: unvote a answer
+[*] TODO: unvote a answer
 
 [] TODO: backend api for comment voting system
 [] TODO: unvote a comment

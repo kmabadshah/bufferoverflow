@@ -120,25 +120,69 @@ export default function Answer({answer_obj, set_page_dont_exist}) {
   }
 
 
+  /*
+   *
+   * if not voted, increment and lock
+   * if downvoted already, double increment and lock
+   * if upvoted already, decrement and unlock
+   *
+   */
   async function handle_answer_vote_up_click() {
     try {
-      // denied voting if already upvoted
-      //
-      // set the vote flag -> GET /already_voted_answers/{answer_id}/{user_id}/{vote_flag}
-      // increment vote -> GET /increment_vote/answers/{answer_id}
-      // update the local state
+      const vote_flag = `upvoted`
 
       if (answer_vote_flag === `upvoted`)
       {
-        return
+        // decrement
+        let res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        set_answer_data({...answer_data, vote_count: answer_data.vote_count-1})
+
+        // unlock
+        res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        set_answer_vote_flag(null)
       }
 
-      const vote_flag = `upvoted`
-      let res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
-      set_answer_vote_flag(res.data.vote_flag)
+      else if (!answer_vote_flag || answer_vote_flag === `downvoted`)
+      {
+        let current_vote_count = answer_data.vote_count
 
-      res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
-      set_answer_data(res.data)
+        // increment
+        let res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        current_vote_count++;
+
+        // lock
+        res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        set_answer_vote_flag(vote_flag)
+
+        if (answer_vote_flag === `downvoted`)
+        {
+          // increment again
+          res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
+          if (res.status !== 204)
+          {
+            throw new Error(res)
+          }
+          current_vote_count++;
+        }
+
+        set_answer_data({...answer_data, vote_count: current_vote_count})
+      }
     }
     catch(e)
     {
@@ -146,26 +190,70 @@ export default function Answer({answer_obj, set_page_dont_exist}) {
     }
   }
 
+
+  /*
+   *
+   * if not voted, decrement and lock
+   * if upvoted already, double decrement and lock
+   * if downvoted already, increment and unlock
+   *
+   */
   async function handle_answer_vote_down_click() {
     try {
-      // denied voting if already downvoted
-      //
-      // set the vote flag -> GET /already_voted_answers/{answer_id}/{user_id}/{vote_flag}
-      // decrement vote -> GET /increment_vote/answers/{answer_id}
-      // update the local state
+      const vote_flag = `downvoted`
 
       if (answer_vote_flag === `downvoted`)
       {
-        return
+        // increment
+        let res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        set_answer_data({...answer_data, vote_count: answer_data.vote_count+1})
+
+        // unlock
+        res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        set_answer_vote_flag(null)
       }
 
+      else if (!answer_vote_flag || answer_vote_flag === `upvoted`)
+      {
+        let current_vote_count = answer_data.vote_count
 
-      const vote_flag = `downvoted`
-      let res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
-      set_answer_vote_flag(res.data.vote_flag)
+        // decrement
+        let res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        current_vote_count--;
 
-      res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
-      set_answer_data(res.data)
+        // lock
+        res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+        if (res.status !== 204)
+        {
+          throw new Error(res)
+        }
+        set_answer_vote_flag(vote_flag)
+
+        if (answer_vote_flag === `upvoted`)
+        {
+          // decrement again
+          res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
+          if (res.status !== 204)
+          {
+            throw new Error(res)
+          }
+          current_vote_count--;
+        }
+
+        set_answer_data({...answer_data, vote_count: current_vote_count})
+      }
     }
     catch(e)
     {

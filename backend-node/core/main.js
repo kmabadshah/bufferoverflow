@@ -95,6 +95,7 @@ app.get(`/decrement_vote/answers/:answer_id`, (req, res) => increment_or_decreme
 
 app.get(`/already_voted_answers/:answer_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `answer`))
 app.get(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `answer`))
+app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `answer`))
 
 
 app.listen(port, () => console.log(`listening on ${port}`))
