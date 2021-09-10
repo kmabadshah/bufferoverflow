@@ -6,7 +6,8 @@
 [*] TODO: unvote a question
 [*] TODO: unvote a answer
 
-[] TODO: backend api for comment voting system
+[*] TODO: backend api for comment voting system
+[] TODO: comment vote locking
 [] TODO: unvote a comment
 
 [] TODO: only authorized users should be able to edit questions,answers,comments

@@ -81,9 +81,12 @@ app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, (req, res) 
 app.get(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `question`))
 app.delete(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `question`))
 
+/* QUESTION COMMENTS */
 app.post(`/comments/:question_id`, comment_create_async)
 app.get(`/comments/:question_id`, comment_get_async)
 app.put(`/comments/:comment_id`, comment_update_async)
+app.get(`/increment_vote/comments/:comment_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `question_comment`, `increment`))
+app.get(`/decrement_vote/comments/:comment_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `question_comment`, `decrement`))
 
 /* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
