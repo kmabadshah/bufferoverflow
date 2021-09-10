@@ -335,7 +335,7 @@ export default function Question() {
                 set_question_vote_flag(vote_flag)
 
                 // increment counter
-                res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
+                res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
                 if (res.status !== 204)
                 {
                     throw new Error(res)

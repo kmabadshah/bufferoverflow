@@ -142,7 +142,7 @@ export default function Answer({answer_obj, set_page_dont_exist}) {
         set_answer_data({...answer_data, vote_count: answer_data.vote_count-1})
 
         // unlock
-        res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+        res = await axios.delete(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}`)
         if (res.status !== 204)
         {
           throw new Error(res)
@@ -213,7 +213,7 @@ export default function Answer({answer_obj, set_page_dont_exist}) {
         set_answer_data({...answer_data, vote_count: answer_data.vote_count+1})
 
         // unlock
-        res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/${vote_flag}`)
+        res = await axios.delete(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}`)
         if (res.status !== 204)
         {
           throw new Error(res)
