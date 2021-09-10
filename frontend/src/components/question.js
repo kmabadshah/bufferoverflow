@@ -64,8 +64,8 @@ export default function Question() {
                 set_answers(ares.data)
 
                 // get the comments
-                // GET /comments/{question_id}
-                const cres = await axios.get(`${backend_url}/comments/${qres.data.question_id}`)
+                // GET /question_comments/{question_id}
+                const cres = await axios.get(`${backend_url}/question_comments/${qres.data.question_id}`)
                 set_comments(cres.data)
             } catch(e) {
                 console.log(`ERROR: `, e)
@@ -262,8 +262,8 @@ export default function Question() {
                 return
             }
 
-            // POST /comments/{question_id}
-            const res = await axios.post(`${backend_url}/comments/${question_data.question_id}`, {
+            // POST /question_comments/{question_id}
+            const res = await axios.post(`${backend_url}/question_comments/${question_data.question_id}`, {
                 text: e.target[0].value,
                 user_id: current_user.user_id
             })

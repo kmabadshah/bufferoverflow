@@ -8,7 +8,7 @@ export default function QuestionComment({comment_obj}) {
   const comment_text_ref = React.useRef()
 
   const handle_upvote_click = wtc(async () => {
-    let res = await axios.get(`${backend_url}/increment_vote/comments/${comment_data.comment_id}`)
+    let res = await axios.get(`${backend_url}/increment_vote/question_comments/${comment_data.comment_id}`)
     if (res.status !== 204)
     {
       throw new Error(res)
@@ -17,7 +17,7 @@ export default function QuestionComment({comment_obj}) {
   })
 
   const handle_downvote_click = wtc(async () => {
-    let res = await axios.get(`${backend_url}/decrement_vote/comments/${comment_data.comment_id}`)
+    let res = await axios.get(`${backend_url}/decrement_vote/question_comments/${comment_data.comment_id}`)
     if (res.status !== 204)
     {
       throw new Error(res)
@@ -39,7 +39,7 @@ export default function QuestionComment({comment_obj}) {
       return set_edit_comment_clicked(false)
     }
 
-    const res = await axios.put(`${backend_url}/comments/${comment_data.comment_id}`, {
+    const res = await axios.put(`${backend_url}/question_comments/${comment_data.comment_id}`, {
       text: text
     })
 
@@ -92,5 +92,4 @@ export default function QuestionComment({comment_obj}) {
       </div>
     </div>
   )
-
 }

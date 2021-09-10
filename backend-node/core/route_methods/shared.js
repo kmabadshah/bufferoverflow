@@ -40,11 +40,10 @@ export function wtc(f) {
  * helper function to increment/decrement the vote_count field
  * in the any of the following tables: questions, answers, question_comments
  *
- * the id for ! /comment/.match(table_name) will be table_name+'_id'
- * but the id for /comment/.match(table_name) will be comment_id
+ * the id for /comment/.match(table_name) === false will be table_name+'_id'
+ * the id for /comment/.match(table_name) === true will be comment_id
  *
  * */
-
 export const increment_or_decrement_table_vote_async = wtc(async (req, res, table_name_singular, flag) => {
   if (
     !table_name_singular ||
