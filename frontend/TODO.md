@@ -7,6 +7,7 @@
 [*] TODO: unvote a answer
 
 [*] TODO: backend api for comment voting system
+[] TODO: remove all wtc references
 [] TODO: comment vote locking
 [] TODO: unvote a comment
 

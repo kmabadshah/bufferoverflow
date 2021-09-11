@@ -1,9 +1,9 @@
 import React from 'react';
-import {new_question_obj, backend_url} from './utilities'
+import {new_question_obj, backend_url, wtc} from './utilities'
 import {Link, useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions} from '../index.js'
-import {Navbar} from './utilities'
+import {Navbar, get_user_info_async, new_user_obj} from './utilities'
 import axios from 'axios'
 
 /*
@@ -18,88 +18,85 @@ import axios from 'axios'
  * */
 
 export default function Home() {
-    const dispatch = useDispatch()
-    const history = useHistory()
-    const [questions, set_questions] = React.useState([])
-    const [loading, set_loading] = React.useState(true)
+  const dispatch = useDispatch()
+  const history = useHistory()
+  const [questions, set_questions] = React.useState([])
+  const [loading, set_loading] = React.useState(true)
+  const {extras: {random_error}, users: {current_user}} = useSelector(store => store)
 
-    React.useState(() => {
-        (async () => {
-            try {
-                const res = await axios.get(`${backend_url}/questions`)
-                set_questions(res.data)
-            }
-            catch(e)
-            {
-                console.dir(e)
-            }
+  React.useState(() => {
+    wtc(async () => {
+      if (!current_user && localStorage.getItem('github_api_token'))
+      {
+        const user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
+        const {data} = await axios.post(`${backend_url}/users`, user_data)
+        dispatch(users_actions.set_current_user(new_user_obj(data)))
+      }
 
-            set_loading(false)
-        })()
-    }, [])
+      const res = await axios.get(`${backend_url}/questions`)
+      set_questions(res.data)
+
+
+      set_loading(false)
+    })(() => dispatch(extras_actions.random_error_on()))
+  }, [])
+
+
+
+
+  function AskQuestionButton()  {
+    return (
+      <div className={`flex justify-end boder border-red-900 mt-10`}>
+        <button className={``} onClick={handle_ask_question_click}>Ask Question</button>
+      </div>
+    )
+
+    function handle_ask_question_click() {
+      history.push(`/ask_question`)
+    }
+  }
+
+
+  function Questions() {
+    const on_question_click = (question_id) => {
+      history.push(`/questions/${question_id}`)
+    }
 
     return (
-        <div className={`flex flex-col h-screen container mx-auto`}>
-            {/* row-1 */}
-            <Navbar />
+      <div className={`flex flex-col boder border-red-900 mt-10`}>
+        {questions.map(({title, timestamp, question_id}) => (
+          <button className={`flex justify-between mt-2`} onClick={() => on_question_click(question_id)} key={question_id}>
+            <p>user_image_url</p>
+            <h1>{title}</h1>
+            <p>{timestamp}</p>
+          </button>
+        ))}
+      </div>
+    )
+  }
 
-            {/* row-2 */}
-            <AskQuestionButton />
 
-            {/* row-3 */}
-            {loading ? `loading...` : <Questions />}
-        </div>
+  if (loading)
+  {
+    return `loading...`
+  }
+  else if (random_error)
+  {
+    return `something went wrong, please try refreshing the page`
+  }
+  else
+  {
+    return (
+      <div className={`flex flex-col h-screen container mx-auto`}>
+        {/* row-1 */}
+        <Navbar />
+
+        {/* row-2 */}
+        {current_user && <AskQuestionButton />}
+
+        {/* row-3 */}
+        <Questions />
+      </div>
     );
-
-
-
-    function AskQuestionButton()  {
-        return (
-            <div className={`flex justify-end boder border-red-900 mt-10`}>
-                <button className={``} onClick={handle_ask_question_click}>Ask Question</button>
-            </div>
-        )
-
-        function handle_ask_question_click() {
-            // loading=on
-            // go to /ask_question page
-            // loading=off
-
-            dispatch(extras_actions.loading_on())
-            history.push(`/ask_question`)
-        }
-    }
-
-
-
-
-    function Questions() {
-        /*
-         *
-         * a clickable question has the following sections
-         * poster's image at the left, the title at the middle, the timestamp at the right
-         *
-         * */
-
-        return (
-            <div className={`flex flex-col boder border-red-900 mt-10`}>
-                {questions.map(({title, timestamp, question_id}) => (
-                    <button className={`flex justify-between mt-2`} onClick={() => on_question_click(question_id)} key={question_id}>
-                        <p>user_image_url</p>
-                        <h1>{title}</h1>
-                        <p>{timestamp}</p>
-                    </button>
-                ))}
-            </div>
-        )
-
-        function on_question_click(question_id) {
-            // loading=on
-            // go to /questions/{id}
-            // loading=off
-
-            dispatch(extras_actions.loading_on())
-            history.push(`/questions/${question_id}`)
-        }
-    }
+  }
 }

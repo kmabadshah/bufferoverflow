@@ -14,6 +14,32 @@ import {db} from '../main.js'
  *
 */
 export function wtc(f) {
+  const is_async = f.constructor.name === `AsyncFunction`
+
+  if (is_async) {
+    return async function() {
+      try {
+        return await f.apply(this, arguments)
+      }
+      catch(e)
+      {
+        console.log(`-------------ERROR_BEGIN---------`)
+        console.dir(e)
+        console.trace(e)
+        console.log(`-------------ERROR_END---------`)
+
+        for (let v of arguments)
+        {
+          if (v.constructor.name === `ServerResponse`)
+          {
+            v.status(500).send()
+          }
+        }
+
+      }
+    }
+  }
+
   return function() {
     try {
       return f.apply(this, arguments)
@@ -24,7 +50,15 @@ export function wtc(f) {
       console.dir(e)
       console.trace(e)
       console.log(`-------------ERROR_END---------`)
-      res.status(500).send()
+
+      for (let v of arguments)
+      {
+        if (v.constructor.name === `ServerResponse`)
+        {
+          v.status(500).send()
+        }
+      }
+
     }
   }
 }

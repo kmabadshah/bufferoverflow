@@ -10,15 +10,15 @@ import './tailwind.css';
 export const {reducer: extras_reducer, actions: extras_actions} = createSlice({
     name: 'extras',
     initialState: {
-        loading: true
+        random_error: false
     },
     reducers: {
-        loading_off: (state) => {
-            state.loading = false
+        random_error_on: (state) => {
+            state.random_error = true
         },
-        loading_on: (state) => {
-            state.loading = true
-        }
+        random_error_off: (state) => {
+            state.random_error = false
+        },
     }
 })
 

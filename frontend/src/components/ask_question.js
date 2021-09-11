@@ -18,60 +18,59 @@ import {Navbar} from './utilities'
 
 
 export default function AskQuestion() {
-    const current_user = useSelector(store => store.users.current_user)
-    const history = useHistory()
+  const current_user = useSelector(store => store.users.current_user)
+  const history = useHistory()
 
-    return (
-        <div  className={`flex flex-col mx-10 h-screen brder border-red-900`} >
-            <Navbar />
-            <form method={`post`} onSubmit={handle_submit}>
-                {/* row-1 */}
-                <h1 className={`text-center text-5xl mt-10`}>Ask a question</h1>
+  return (
+    <div  className={`flex flex-col mx-10 h-screen brder border-red-900`} >
+      <form method={`post`} onSubmit={handle_submit}>
+        {/* row-1 */}
+        <h1 className={`text-center text-5xl mt-10`}>Ask a question</h1>
 
-                {/* row-2 */}
-                <input name={`question_title`}  placeholder={`Question title goes here`} className={`border border-red-900  mt-10 w-full h-20`} type={`text`} />
+        {/* row-2 */}
+        <input name={`question_title`}  placeholder={`Question title goes here`} className={`border border-red-900  mt-10 w-full h-20`} type={`text`} />
 
-                {/* row-3 */}
-                <textarea name={`question_title`} className={`w-full mt-10 h-1/2 border border-red-900`} placeholder={`Question description goes here`}></textarea>
+        {/* row-3 */}
+        <textarea name={`question_title`} className={`w-full mt-10 h-1/2 border border-red-900`} placeholder={`Question description goes here`}></textarea>
 
-                {/* row-4 */}
-                <button type={`submit`} className={`w-full p-5 bg-green-300 mt-5 hover:bg-green-400`}>Submit</button>
-            </form>
-        </div>
-    )
+        {/* row-4 */}
+        <button type={`submit`} className={`w-full p-5 bg-green-300 mt-5 hover:bg-green-400`}>Submit</button>
+      </form>
+    </div>
+  )
 
-    async function handle_submit(e) {
-        try {
-            e.preventDefault()
+  async function handle_submit(e) {
+    try {
+      e.preventDefault()
 
-            let [question_title, question_description] = Object.values(e.target)
-            question_title = question_title.value
-            question_description = question_description.value
+      let [question_title, question_description] = Object.values(e.target)
+      question_title = question_title.value
+      question_description = question_description.value
 
-            if (!question_title || !question_description) {
-                return
-            }
+      if (!question_title || !question_description) {
+        return
+      }
 
-            let question_obj = {
-                title: question_title,
-                description: question_description,
-                user_id: current_user.user_id
-            }
+      let question_obj = {
+        title: question_title,
+        description: question_description,
+        user_id: current_user.user_id
+      }
 
-            const res = await axios.post(`${backend_url}/questions`, question_obj)
+      const res = await axios.post(`${backend_url}/questions`, question_obj)
 
-            if (res.status !== 200) {
-                return
-            }
+      if (res.status !== 200) {
+        return
+      }
 
-            question_obj = res.data
-            history.push(`questions/${question_obj.question_id}`)
+      question_obj = res.data
+      history.push(`questions/${question_obj.question_id}`)
 
-        } catch(e) {
-            if (e.response)
-                console.log("REQUEST ERROR: ", e.response)
-            else
-                console.log("ERROR: ", e)
-        }
+    } catch(e) {
+      if (e.response)
+        console.log("REQUEST ERROR: ", e.response)
+      else
+        console.log("ERROR: ", e)
     }
+  }
 }

@@ -25,16 +25,49 @@ const github_get_token_url = 'https://github.com/login/oauth/access_token'
  *
 */
 export function wtc(f) {
+  const is_async = f.constructor.name === `AsyncFunction`
+
+  if (is_async) {
+    return async function() {
+      try {
+        return await f.apply(this, arguments)
+      }
+      catch(e)
+      {
+        console.log(`-------------ERROR_BEGIN---------`)
+        console.dir(e)
+        console.trace(e)
+        console.log(`-------------ERROR_END---------`)
+
+        // additional error handling code
+        if (typeof arguments[0] === `function`)
+        {
+          arguments[0]()
+        }
+      }
+    }
+  }
+
   return function() {
     try {
       return f.apply(this, arguments)
     }
     catch(e)
     {
+      console.log(`-------------ERROR_BEGIN---------`)
       console.dir(e)
+      console.trace(e)
+      console.log(`-------------ERROR_END---------`)
+
+      // additional error handling code
+      if (typeof arguments[0] === `function`)
+      {
+        arguments[0]()
+      }
     }
   }
 }
+
 
 export function new_user_obj({user_id, username, image_url, profile_description, timestamp}) {
   if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
@@ -127,7 +160,6 @@ export function Br({height}) {
 
 
 
-
 export function Navbar() {
   const pathname = window.location.pathname
   const dispatch = useDispatch()
@@ -136,25 +168,56 @@ export function Navbar() {
   const [profile_icon_clicked, set_profile_icon_clicked] = React.useState(false)
   const history = useHistory()
 
+  const handle_login_click = wtc(async () => {
+    let get_token_url =
+      'https://www.github.com/login/oauth/authorize' +
+      '?client_id=24bf0d137961d6038ffb' +
+      '&redirect_uri=http://localhost:3000/oauth_consent' +
+      '&scope=read:user'
+
+    const win = window.open(get_token_url, '_blank', 'toolbar=0,location=0,menubar=0');
+    const timer_promise = () => new Promise((resolve, reject) => {
+      const timer = setInterval(() =>  {
+        if (win.closed) {
+          resolve(window.localStorage.getItem('string_before_api_token'))
+          clearInterval(timer)
+        }
+      }, 1000)
+    })
+
+    const string_before_api_token = await timer_promise()
+    if (!string_before_api_token) return
+
+    // fetch and store the token
+    const token = await fetch_token_async(string_before_api_token)
+    localStorage.setItem('github_api_token', token)
+
+    const user_data = await get_user_info_async(token)
+    const {data} = await axios.post(`${backend_url}/users`, user_data)
+
+    dispatch(users_actions.set_current_user(new_user_obj(data)))
+    set_notification_icon_clicked(false)
+    set_profile_icon_clicked(false)
+  })
+
+
   return (
     <div id='navbar' className={`flex justify-between brder border-red-900 mt-10`}>
-      <button id='logo' className={``} onClick={handle_logo_click}>bufferoverflow</button>
+      <button className={``} onClick={handle_logo_click}>bufferoverflow</button>
 
       <div className={`flex`}>
         <div className={`relative`}>
-          <button id='notification_icon' className={`mr-2`} onClick={handle_notification_icon_click}>noticon</button>
-
-          {notification_icon_clicked && (
-            <div id='notification_dialog' tabIndex={-1} className={`flex flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
-              <Notifications />
-            </div>
-          )}
+          {current_user && <button className={`mr-2`} onClick={handle_notification_icon_click}>noticon</button> }
+          {current_user && notification_icon_clicked && <Notifications />}
         </div>
 
         <div className={`relative`}>
-          <button id='profile_icon' className={`mr-2`} onClick={handle_profile_icon_click}>proficon</button>
+          {current_user ?
+          <button onClick={handle_profile_icon_click}>proficon</button>
+          : <button onClick={handle_login_click}>login</button>
+          }
 
-          {profile_icon_clicked && <Profile />}
+          {current_user && profile_icon_clicked && <Profile />}
         </div>
       </div>
     </div>
@@ -191,15 +254,19 @@ export function Navbar() {
       user_id: 12,
     }))
 
-    return notifications.map(({notification_title, timestamp, notification_id, notification_link}, i) => (
-      <button className={`notification_button flex justify-end`}
-        onClick={() => handle_notification_click(notification_link)}
-        key={i /*notification_id*/}
-      >
-        <h1 className={`notification_title`}>{notification_title}</h1>
-        <p>{timestamp}</p>
-      </button>
-    ))
+    return (
+      <div tabIndex={-1} className={`flex flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
+        {notifications.map(({notification_title, timestamp, notification_id, notification_link}, i) => (
+          <button className={`notification_button flex justify-end`}
+            onClick={() => handle_notification_click(notification_link)}
+            key={i /*notification_id*/}
+          >
+            <h1 className={`notification_title`}>{notification_title}</h1>
+            <p>{timestamp}</p>
+          </button>
+        ))}
+      </div>
+    )
 
 
     function handle_notification_click() {
@@ -222,19 +289,8 @@ export function Navbar() {
 
 
 
-
   function Profile() {
-    return (
-      <div id='profile_dialog' tabIndex={-1} className={`flex p-3 flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
-        <h1 id='profile_user_image' className={`text-center`}>user_image</h1>
-        <h1 id='profile_user_name' className={`text-center`}>{current_user.username}</h1>
-        <button id='profile_link' onClick={handle_go_to_profile_click}>go_to_profile</button>
-        <button id='profile_logout_button' onClick={handle_logout_click}>logout</button>
-      </div>
-    )
-
-
-    function handle_go_to_profile_click() {
+    const handle_go_to_profile_click = () => {
       // turn state.loading = true
       // history.push() to /users/{id} page
       // turn state.loading = false
@@ -243,16 +299,23 @@ export function Navbar() {
       history.push(`/users/${current_user.user_id}`)
     }
 
-
-    function handle_logout_click() {
+    const handle_logout_click = () => {
       // turn state.loading = true
       // remove user from the redux store
       // delete all tokens from localStorage
       // turn state.loading = false
 
-      dispatch(extras_actions.loading_on())
       dispatch(users_actions.unset_current_user())
       localStorage.clear()
     }
+
+    return (
+      <div id='profile_dialog' tabIndex={-1} className={`flex p-3 flex-col w-80 cursor-none max-h-80 overflow-scroll absolute top-10 right-0 bg-white border border-black`}>
+        <h1 id='profile_user_image' className={`text-center`}>user_image</h1>
+        <h1 id='profile_user_name' className={`text-center`}>{current_user.username}</h1>
+        <button id='profile_link' onClick={handle_go_to_profile_click}>go_to_profile</button>
+        <button id='profile_logout_button' onClick={handle_logout_click}>logout</button>
+      </div>
+    )
   }
 }
