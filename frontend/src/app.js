@@ -1,9 +1,7 @@
 import React from 'react'
-import Enter from './components/enter'
 import Home from './components/home'
 import User from './components/user'
 import Question from './components/question'
-import Protected from './components/protected'
 import AskQuestion from './components/ask_question'
 import NotFound from './components/not_found'
 import {wtc, get_user_info_async, backend_url, new_user_obj} from './components/utilities'
@@ -27,7 +25,6 @@ export default function App() {
             <Route path={`/users/:user_id`}> <User /> </Route>
             <Route path={`/ask_question`}> <AskQuestion /> </Route>
             <Route path={`/questions/:question_id`}> <Question /> </Route>
-            <Route path={`/enter`}><Enter /></Route>
             <Route path={`/`}> <NotFound/> </Route>
         </Switch>
     </Router>

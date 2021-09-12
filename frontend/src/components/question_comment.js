@@ -14,15 +14,14 @@ export default function QuestionComment({comment_obj}) {
 
   React.useEffect(() => {
     wtc(async() => {
-      // fetch vote flag
+      // fetch vote flag, if any
       const res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${comment_data.user_id}`)
-      if (res.status !== 200)
+      if (res.status === 200)
       {
-        throw new Error(res)
+        set_vote_flag(res.data.vote_flag)
       }
     })(() => {
       dispatch(extras_actions.random_error_on())
-      dispatch(extras_actions.loading_on())
     })
   }, [])
 

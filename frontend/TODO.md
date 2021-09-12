@@ -7,7 +7,8 @@
 [*] TODO: unvote a answer
 
 [*] TODO: backend api for comment voting system
-[] TODO: remove all wtc references
+[*] TODO: replace webpack with snowpack
+[] TODO: implement logout vote unlock for comment voting
 [] TODO: comment vote locking
 [] TODO: unvote a comment
 

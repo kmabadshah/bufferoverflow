@@ -25,58 +25,27 @@ import {useSelector, useDispatch} from 'react-redux'
  *
  */
 
+let prev_user_data = null
 export default function Question() {
   const
   [loading, set_loading] = React.useState(true),
-    [question_data, set_question_data] = React.useState(),
-    [question_vote_flag, set_question_vote_flag] = React.useState(null),
-    [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
-    [answers, set_answers] = React.useState([]),
-    [question_editable, set_question_editable] = React.useState(false),
-    [comments, set_comments] = React.useState([]),
-    [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
-    {extras: {random_error}, users: {current_user}} = useSelector(store => store),
-    {question_id} = useParams(),
-    dispatch = useDispatch(),
-    ref = React.useRef()
+  [question_data, set_question_data] = React.useState(),
+  [question_vote_flag, set_question_vote_flag] = React.useState(null),
+  [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
+  [answers, set_answers] = React.useState([]),
+  [question_editable, set_question_editable] = React.useState(false),
+  [comments, set_comments] = React.useState([]),
+  [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
+  {extras: {random_error}, users: {current_user}} = useSelector(store => store),
+  {question_id} = useParams(),
+  dispatch = useDispatch(),
+  ref = React.useRef()
 
-
-  React.useEffect(() => {
-    wtc(async() => {
-      if (!current_user)
-      {
-        set_question_vote_flag(null)
-      }
-
-      if (current_user && question_data)
-      {
-        // get the aleady_voted_questions list
-        // GET /already_voted_questions/{question_id}/{user_id}
-        // if status === 200, continue
-        let res = await axios.get(
-          `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
-          {validateStatus: (status) => status < 500}
-        )
-        if (res.status === 200) {
-          set_question_vote_flag(res.data.vote_flag)
-        }
-      }
-    })(() => dispatch(extras_actions.random_error_on()))
-  }, [current_user, question_data])
 
 
   React.useEffect(() => {
     wtc(async () => {
-      let user_data;
-      if (!current_user && localStorage.getItem('github_api_token'))
-      {
-        let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
-        const {data} = await axios.post(`${backend_url}/users`, user_data)
-        user_data = new_user_obj(data)
-        dispatch(users_actions.set_current_user(user_data))
-      }
-
-      // get the question
+      // fetch questions
       const qres = await axios.get(`${backend_url}/questions/${question_id}`)
       set_question_data(qres.data)
 
@@ -91,11 +60,46 @@ export default function Question() {
       ares.data.sort(sort_by_vote_count_and_timestamp)
       set_answers(ares.data)
 
-      set_loading(false)
+      let user_data;
+      if (!current_user && localStorage.getItem('github_api_token'))
+      {
+        let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
+        const {data} = await axios.post(`${backend_url}/users`, user_data)
+        user_data = new_user_obj(data)
+        dispatch(users_actions.set_current_user(user_data))
+      }
 
+      set_loading(false)
     })(() => dispatch(extras_actions.random_error_on()))
 
   }, [])
+
+  // check everytime the user logs in if the question_data is available
+  // if not, fetch question_data and vote_flag, otherwise only fetch vote_flag
+  React.useEffect(() => {
+    wtc(async() => {
+      setTimeout(() => prev_user_data = current_user, 0)
+
+      // just logged out
+      if (!current_user && prev_user_data)
+        set_question_vote_flag(null)
+
+      // just logged in
+      else if (!prev_user_data && current_user)
+      {
+        // thanks to root useEffect(), question_data is available,
+        // just fetch the equestion flag
+        let res = await axios.get(
+          `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
+          {validateStatus: (status) => status < 500}
+        )
+        if (res.status === 200)
+          set_question_vote_flag(res.data.vote_flag)
+      }
+
+    })(() => dispatch(extras_actions.random_error_on()))
+
+  }, [current_user])
 
 
 
@@ -108,7 +112,7 @@ export default function Question() {
     const vote_flag = `upvoted`
     let current_vote_count = question_data.vote_count
 
-    // not voted or already downvoted
+    // if not voted
     if (!question_vote_flag || question_vote_flag === `downvoted`)
     {
 
@@ -135,7 +139,7 @@ export default function Question() {
 
       current_vote_count++;
 
-      // increment again
+      // increment again if already downvoted
       if (question_vote_flag === `downvoted`)
       {
         res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
@@ -366,6 +370,26 @@ export default function Question() {
   })
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if (random_error) {
     return `something went wrong, please try refreshing the page`
   }
@@ -373,28 +397,6 @@ export default function Question() {
   if (loading) {
     return `loading...`
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

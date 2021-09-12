@@ -57,7 +57,7 @@ export const already_voted_table_create_async = wtc(async(req, res, table_name_s
         `, [row_id])
 
     if (!db_res) {
-        return res.status(400).send(`invalid ${table_name_singular}_id`)
+        return res.status(204).send()
     }
 
 
@@ -146,7 +146,7 @@ export const already_voted_table_get_async = wtc(async(req, res, table_name_sing
         `, [row_id, user_id])
 
     if (!db_res) {
-        return res.status(400).send(`invalid ${table_name_singular}_id or user_id`)
+        return res.status(204).send()
     }
 
     res.status(200).send(db_res)
