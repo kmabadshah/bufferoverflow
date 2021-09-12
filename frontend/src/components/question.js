@@ -25,23 +25,22 @@ import {useSelector, useDispatch} from 'react-redux'
  *
  */
 
-let prev_user_data = null
 export default function Question() {
   const
   [loading, set_loading] = React.useState(true),
   [question_data, set_question_data] = React.useState(),
   [question_vote_flag, set_question_vote_flag] = React.useState(null),
+  [prev_user_data, set_prev_user_data] = React.useState(null),
   [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
   [answers, set_answers] = React.useState([]),
   [question_editable, set_question_editable] = React.useState(false),
   [comments, set_comments] = React.useState([]),
   [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
+  [first_render, set_first_render] = React.useState(true),
   {extras: {random_error}, users: {current_user}} = useSelector(store => store),
   {question_id} = useParams(),
   dispatch = useDispatch(),
   ref = React.useRef()
-
-
 
   React.useEffect(() => {
     wtc(async () => {
@@ -70,6 +69,7 @@ export default function Question() {
       }
 
       set_loading(false)
+      set_first_render(false)
     })(() => dispatch(extras_actions.random_error_on()))
 
   }, [])
@@ -77,9 +77,7 @@ export default function Question() {
   // check everytime the user logs in if the question_data is available
   // if not, fetch question_data and vote_flag, otherwise only fetch vote_flag
   React.useEffect(() => {
-    wtc(async() => {
-      setTimeout(() => prev_user_data = current_user, 0)
-
+    !first_render && wtc(async() => {
       // just logged out
       if (!current_user && prev_user_data)
         set_question_vote_flag(null)
@@ -87,8 +85,6 @@ export default function Question() {
       // just logged in
       else if (!prev_user_data && current_user)
       {
-        // thanks to root useEffect(), question_data is available,
-        // just fetch the equestion flag
         let res = await axios.get(
           `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
           {validateStatus: (status) => status < 500}
@@ -97,9 +93,11 @@ export default function Question() {
           set_question_vote_flag(res.data.vote_flag)
       }
 
+      set_prev_user_data(current_user)
+
     })(() => dispatch(extras_actions.random_error_on()))
 
-  }, [current_user])
+  }, [current_user, first_render])
 
 
 
