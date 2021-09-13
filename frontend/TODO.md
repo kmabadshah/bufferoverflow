@@ -8,6 +8,7 @@
 
 [*] TODO: backend api for comment voting system
 [*] TODO: replace webpack with snowpack
+[] TODO: cache data into redux store when user visits a page
 [] TODO: implement logout vote unlock for comment voting
 [] TODO: comment vote locking
 [] TODO: unvote a comment

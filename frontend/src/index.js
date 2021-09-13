@@ -10,7 +10,8 @@ import './tailwind.css';
 export const {reducer: extras_reducer, actions: extras_actions} = createSlice({
     name: 'extras',
     initialState: {
-        random_error: false
+        random_error: false,
+        fetched_all_questions: false
     },
     reducers: {
         random_error_on: (state) => {
@@ -19,6 +20,10 @@ export const {reducer: extras_reducer, actions: extras_actions} = createSlice({
         random_error_off: (state) => {
             state.random_error = false
         },
+
+        fetched_all_questions_on: state => {
+            state.fetched_all_questions = true
+        }
     }
 })
 
@@ -38,8 +43,6 @@ export const {reducer: users_reducer, actions: users_actions} = createSlice({
      * }
      * */
 
-
-
     name: 'users',
     initialState: {
         current_user: null,
@@ -55,10 +58,69 @@ export const {reducer: users_reducer, actions: users_actions} = createSlice({
     }
 })
 
+export const {reducer: questions_reducer, actions: questions_actions} = createSlice({
+    name: 'questions',
+    initialState: [],
+    reducers: {
+        add: (state, {payload}) => {
+            if (payload.constructor.name === `Array`)
+                return [...state, ...payload]
+
+            else
+                return [...state, payload]
+        },
+
+        set: (state, {payload}) => payload,
+
+        // expecting payload to be a full question object
+        update: (state, {payload}) => {
+            return state.map(q => {
+                if (q.question_id === payload.question_id)
+                    return payload
+                else
+                    return q
+            })
+        }
+    }
+})
+
+
+export const {reducer: question_comments_reducer, actions: question_comments_actions} = createSlice({
+    name: 'question_comments',
+    initialState: [],
+    reducers: {
+        add: (state, {payload}) => {
+            if (payload.constructor.name === `Array`)
+                return [...state, ...payload]
+
+            else
+                return [...state, payload]
+        }
+    }
+})
+
+export const {reducer: answers_reducer, actions: answers_actions} = createSlice({
+    name: 'answers',
+    initialState: [],
+    reducers: {
+        add: (state, {payload}) => {
+            if (payload.constructor.name === `Array`)
+                return [...state, ...payload]
+
+            else
+                return [...state, payload]
+        }
+    }
+})
+
+
 const store = configureStore({
     reducer: {
         extras: extras_reducer,
-        users: users_reducer
+        users: users_reducer,
+        questions: questions_reducer,
+        question_comments: question_comments_reducer,
+        answers: answers_reducer
     }
 })
 
