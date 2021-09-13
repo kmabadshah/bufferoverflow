@@ -3,7 +3,7 @@ import {useParams} from 'react-router-dom'
 import axios from 'axios'
 import {backend_url, Navbar, new_answer_obj, new_user_obj, get_user_info_async, Br, wtc} from './utilities'
 import Answer from './answer'
-import {extras_actions, users_actions, questions_actions, question_comments_actions, answers_actions} from '../index.js'
+import {extras_actions, users_actions, questions_actions, already_voted_questions_actions, question_comments_actions, answers_actions} from '../index.js'
 import QuestionComment from './question_comment'
 import {useSelector, useDispatch} from 'react-redux'
 
@@ -30,7 +30,6 @@ export default function Question() {
     [loading, set_loading] = React.useState(true),
     [prev_user_data, set_prev_user_data] = React.useState(null),
 
-    [question_vote_flag, set_question_vote_flag] = React.useState(null),
     [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
 
     [question_editable, set_question_editable] = React.useState(false),
@@ -43,6 +42,11 @@ export default function Question() {
     question_data = useSelector(store => store.questions.find(q => q.question_id === question_id)),
     answers = useSelector(store => store.answers.filter(ans => ans.question_id === question_id)),
     comments = useSelector(store => store.question_comments.filter(qc => qc.question_id === question_id)),
+    already_voted_question = useSelector(store => store.already_voted_questions.find(q => {
+        return q.question_id === question_id &&
+        q.user_id === (current_user && current_user.user_id)
+    })),
+    vote_flag = already_voted_question && already_voted_question.vote_flag,
 
     dispatch = useDispatch(),
     ref = React.useRef()
@@ -96,7 +100,10 @@ export default function Question() {
         !first_render && wtc(async() => {
             // just logged out
             if (!current_user && prev_user_data)
-                set_question_vote_flag(null)
+                dispatch(already_voted_questions_actions.delete({
+                    user_id: prev_user_data.user_id,
+                    question_id
+                }))
 
             // just logged in
             else if (!prev_user_data && current_user) {
@@ -105,7 +112,11 @@ export default function Question() {
                     {validateStatus: (status) => status < 500}
                 )
                 if (res.status === 200)
-                    set_question_vote_flag(res.data.vote_flag)
+                    dispatch(already_voted_questions_actions.update({
+                        user_id: current_user.user_id,
+                        vote_flag: res.data.vote_flag,
+                        question_id
+                    }))
             }
 
             set_prev_user_data(current_user)
@@ -119,23 +130,26 @@ export default function Question() {
         if (!current_user)
             return
 
-        const vote_flag = `upvoted`
         let current_vote_count = question_data.vote_count
 
-        // if not voted
-        if (!question_vote_flag || question_vote_flag === `downvoted`) {
+        // if not voted or already downvoted
+        if (!vote_flag || vote_flag === `downvoted`) {
             // set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
             let res = await axios.get(
                 backend_url
                 +`/already_voted_questions/`
                 +question_data.question_id+`/`
                 +current_user.user_id+`/`
-                +vote_flag
+                +`upvoted`
             )
             if (res.status !== 204)
                 throw new Error(res)
 
-            set_question_vote_flag(vote_flag)
+            dispatch(already_voted_questions_actions.update({
+                user_id: current_user.user_id,
+                vote_flag: `upvoted`,
+                question_id
+            }))
 
             // increment counter
             res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
@@ -145,7 +159,7 @@ export default function Question() {
             current_vote_count++;
 
             // increment again if already downvoted
-            if (question_vote_flag === `downvoted`) {
+            if (vote_flag === `downvoted`) {
                 res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
 
                 if (res.status !== 204)
@@ -158,7 +172,7 @@ export default function Question() {
         }
 
         // when already upvoted
-        else if (question_vote_flag === `upvoted`) {
+        else if (vote_flag === `upvoted`) {
             // increment the counter
             let res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
             if (res.status !== 204)
@@ -176,7 +190,7 @@ export default function Question() {
             if (res.status !== 204)
                 throw new Error(res)
 
-            set_question_vote_flag(null)
+            dispatch(already_voted_questions_actions.delete({user_id: current_user.user_id, question_id}))
         }
     })
 
@@ -184,23 +198,26 @@ export default function Question() {
         if (!current_user)
             return
 
-        const vote_flag = `downvoted`
         let current_vote_count = question_data.vote_count
 
         // not voted or already upvoted
-        if (!question_vote_flag || question_vote_flag === `upvoted`) {
+        if (!vote_flag || vote_flag === `upvoted`) {
             // set vote flag -> GET /already_voted_questions/{question_id}/{user_id}/{vote_flag}
             let res = await axios.get(
                 backend_url
                 +`/already_voted_questions/`
                 +question_data.question_id+`/`
                 +current_user.user_id+`/`
-                +vote_flag
+                +`downvoted`
             )
             if (res.status !== 204)
                 throw new Error(res)
 
-            set_question_vote_flag(vote_flag)
+            dispatch(already_voted_questions_actions.update({
+                user_id: current_user.user_id,
+                vote_flag: `downvoted`,
+                question_id
+            }))
 
             // decrement counter
             res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
@@ -210,7 +227,7 @@ export default function Question() {
             current_vote_count--;
 
             // decrement again
-            if (question_vote_flag === `upvoted`) {
+            if (vote_flag === `upvoted`) {
                 res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
                 if (res.status !== 204)
                     throw new Error(res)
@@ -223,7 +240,7 @@ export default function Question() {
         }
 
         // when already downvoted
-        else if (question_vote_flag === `downvoted`) {
+        else if (vote_flag === `downvoted`) {
             // increment the counter
             let res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
             if (res.status !== 204)
@@ -241,7 +258,7 @@ export default function Question() {
             if (res.status !== 204)
                 throw new Error(res)
 
-            set_question_vote_flag(null)
+            dispatch(already_voted_questions_actions.delete({user_id: current_user.user_id, question_id}))
         }
 
     })
@@ -403,13 +420,13 @@ export default function Question() {
             <div className={`flex mt-20 boder border-red-900`}>
                 <div className={`flex flex-col align-center border border-red-900 h-[max-content]`}>
                     {/* vote_up_icon */}
-                    <button onClick={handle_question_vote_up_click}>vote_up {question_vote_flag === `upvoted` && `^`}</button>
+                    <button onClick={handle_question_vote_up_click}>vote_up {vote_flag === `upvoted` && `^`}</button>
 
                     {/* vote_count */}
                     <p className={`text-center`}>{question_data.vote_count}</p>
 
                     {/* vote down icon */}
-                    <button onClick={handle_question_vote_down_click}>vote_down {question_vote_flag === `downvoted` && `v`}</button>
+                    <button onClick={handle_question_vote_down_click}>vote_down {vote_flag === `downvoted` && `v`}</button>
                 </div>
 
                 {/* question_description */}

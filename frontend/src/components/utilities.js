@@ -29,21 +29,17 @@ export function wtc(f) {
 
     if (is_async) {
         return async function() {
-            try
-            {
+            try {
                 return await f.apply(this, arguments)
             }
-            catch(e)
-            {
+            catch(e) {
                 console.log(`-------------ERROR_BEGIN---------`)
                 console.trace(e)
                 console.log(`-------------ERROR_END---------`)
 
                 // additional error handling code
                 if (typeof arguments[0] === `function`)
-                {
                     arguments[0]()
-                }
             }
         }
     }
@@ -52,17 +48,14 @@ export function wtc(f) {
         try {
             return f.apply(this, arguments)
         }
-        catch(e)
-        {
+        catch(e) {
             console.log(`-------------ERROR_BEGIN---------`)
             console.trace(e)
             console.log(`-------------ERROR_END---------`)
 
             // additional error handling code
             if (typeof arguments[0] === `function`)
-            {
                 arguments[0]()
-            }
         }
     }
 }

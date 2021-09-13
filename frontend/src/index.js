@@ -84,6 +84,31 @@ export const {reducer: questions_reducer, actions: questions_actions} = createSl
     }
 })
 
+export const {reducer: already_voted_questions_reducer, actions: already_voted_questions_actions} = createSlice({
+    name: `already_voted_questions`,
+    initialState: [],
+    reducers: {
+        delete: (state, {payload}) => state.filter(avq => {
+            if (avq.question_id === payload.question_id && avq.user_id === payload.user_id)
+                return false
+            else
+                return true
+        }),
+        update: (state, {payload}) => {
+            const found = state.find(avq => avq.question_id === payload.question_id && avq.user_id === payload.user_id)
+            if (!found) // insert
+                return [...state, payload]
+
+            else // update
+                return state.map(avq => {
+                    if (avq.question_id === payload.question_id && avq.user_id === payload.user_id)
+                        return payload
+                    else
+                        return avq
+                })
+        }
+    }
+})
 
 export const {reducer: question_comments_reducer, actions: question_comments_actions} = createSlice({
     name: 'question_comments',
@@ -120,6 +145,7 @@ const store = configureStore({
         users: users_reducer,
         questions: questions_reducer,
         question_comments: question_comments_reducer,
+        already_voted_questions: already_voted_questions_reducer,
         answers: answers_reducer
     }
 })
