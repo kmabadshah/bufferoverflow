@@ -127,7 +127,6 @@ export default function Answer({answer_obj}) {
      * if downvoted already, increment and unlock
      *
      */
-
     const handle_answer_vote_down_click = wtc(async() => {
         if (!current_user)
             return

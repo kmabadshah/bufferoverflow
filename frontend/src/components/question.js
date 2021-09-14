@@ -25,31 +25,31 @@ import {useSelector, useDispatch} from 'react-redux'
  *
  */
 
-let prev_user_data;
 export default function Question() {
     const
     [loading, set_loading] = React.useState(true),
 
-        [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
+    [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
 
-        [question_editable, set_question_editable] = React.useState(false),
-        [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
-        [first_render, set_first_render] = React.useState(true),
+    [question_editable, set_question_editable] = React.useState(false),
+    [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
+    [first_render, set_first_render] = React.useState(true),
 
-        {extras: {random_error}, users: {current_user}} = useSelector(store => store),
-        question_id = useParams().question_id * 1,
+    {extras: {random_error}, users: {current_user}} = useSelector(store => store),
+    question_id = useParams().question_id * 1,
+    user_id = (current_user && current_user.user_id),
 
-        question_data = useSelector(store => store.questions.find(q => q.question_id === question_id)),
-        answers = useSelector(store => store.answers.filter(ans => ans.question_id === question_id)),
-        comments = useSelector(store => store.question_comments.filter(qc => qc.question_id === question_id)),
-        already_voted_question = useSelector(store => store.already_voted_questions.find(q => {
-            return q.question_id === question_id &&
-                q.user_id === (current_user && current_user.user_id)
-        })),
-        vote_flag = already_voted_question && already_voted_question.vote_flag,
+    question_data = useSelector(store => store.questions.find(q => q.question_id === question_id)),
+    answers = useSelector(store => store.answers.filter(ans => ans.question_id === question_id)),
+    comments = useSelector(store => store.question_comments.filter(qc => qc.question_id === question_id)),
+    already_voted_question = useSelector(store => store.already_voted_questions.find(q => {
+        return q.question_id === question_id &&
+            q.user_id === user_id
+    })),
+    vote_flag = already_voted_question && already_voted_question.vote_flag,
 
-        dispatch = useDispatch(),
-        ref = React.useRef()
+    dispatch = useDispatch(),
+    ref = React.useRef()
 
     React.useEffect(() => { wtc(async () => {
         if (!question_data) {
@@ -96,33 +96,22 @@ export default function Question() {
     })(() => dispatch(extras_actions.random_error_on())) }, [])
 
 
-    React.useEffect(() => {
-        !first_render && wtc(async() => {
-            // just logged out
-            if (!current_user && prev_user_data)
-                dispatch(already_voted_questions_actions.delete({
-                    user_id: prev_user_data.user_id,
+    React.useEffect(() => { !first_render && wtc(async() => {
+        // logged in but not fetched
+        if (current_user && !already_voted_question) {
+            let res = await axios.get(
+                `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
+                {validateStatus: (status) => status < 500}
+            )
+            if (res.status === 200)
+                dispatch(already_voted_questions_actions.update({
+                    user_id: current_user.user_id,
+                    vote_flag: res.data.vote_flag,
                     question_id
                 }))
+        }
 
-            // just logged in
-            else if (!prev_user_data && current_user) {
-                let res = await axios.get(
-                    `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
-                    {validateStatus: (status) => status < 500}
-                )
-                if (res.status === 200)
-                    dispatch(already_voted_questions_actions.update({
-                        user_id: current_user.user_id,
-                        vote_flag: res.data.vote_flag,
-                        question_id
-                    }))
-            }
-
-            prev_user_data = current_user
-
-        })(() => dispatch(extras_actions.random_error_on()))
-    }, [current_user, first_render])
+    })(() => dispatch(extras_actions.random_error_on())) }, [current_user, first_render])
 
 
     const handle_question_vote_up_click = wtc(async() => {
