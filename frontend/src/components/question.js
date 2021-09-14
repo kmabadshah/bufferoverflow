@@ -33,7 +33,6 @@ export default function Question() {
 
     [question_editable, set_question_editable] = React.useState(false),
     [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
-    [first_render, set_first_render] = React.useState(true),
 
     {extras: {random_error}, users: {current_user}} = useSelector(store => store),
     question_id = useParams().question_id * 1,
@@ -93,10 +92,11 @@ export default function Question() {
         set_loading(false)
         set_first_render(false)
 
-    })(() => dispatch(extras_actions.random_error_on())) }, [])
+    })(() => dispatch(extras_actions.random_error_on())) }
+        ,[])
 
 
-    React.useEffect(() => { !first_render && wtc(async() => {
+    React.useEffect(() => { wtc(async() => {
         // logged in but not fetched
         if (current_user && !already_voted_question) {
             let res = await axios.get(
@@ -111,7 +111,8 @@ export default function Question() {
                 }))
         }
 
-    })(() => dispatch(extras_actions.random_error_on())) }, [current_user, first_render])
+    })(() => dispatch(extras_actions.random_error_on())) }
+        ,[current_user])
 
 
     const handle_question_vote_up_click = wtc(async() => {
