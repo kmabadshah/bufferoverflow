@@ -24,8 +24,7 @@ export default function Home() {
 
     React.useState(() => {
         wtc(async () => {
-            if (!current_user && localStorage.getItem('github_api_token'))
-            {
+            if (!current_user && localStorage.getItem('github_api_token')) {
                 const user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
                 const {data} = await axios.post(`${backend_url}/users`, user_data)
                 dispatch(users_actions.set_current_user(new_user_obj(data)))

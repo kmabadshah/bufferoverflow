@@ -46,6 +46,7 @@ export const {reducer: users_reducer, actions: users_actions} = createSlice({
     name: 'users',
     initialState: {
         current_user: null,
+        list: []
     },
     reducers: {
         set_current_user: (state, action) => {
@@ -54,10 +55,20 @@ export const {reducer: users_reducer, actions: users_actions} = createSlice({
 
         unset_current_user: (state, _) => {
             state.current_user = null
+        },
+
+        add: (state, {payload}) => {
+            state.list.push(payload)
         }
     }
 })
 
+
+
+
+
+
+/* =========QUESTIONS SECTION=========== */
 export const {reducer: questions_reducer, actions: questions_actions} = createSlice({
     name: 'questions',
     initialState: [],
@@ -124,6 +135,12 @@ export const {reducer: question_comments_reducer, actions: question_comments_act
     }
 })
 
+
+
+
+
+
+/* =========ANSWERS SECTION=========== */
 export const {reducer: answers_reducer, actions: answers_actions} = createSlice({
     name: 'answers',
     initialState: [],
@@ -134,19 +151,62 @@ export const {reducer: answers_reducer, actions: answers_actions} = createSlice(
 
             else
                 return [...state, payload]
+        },
+
+        // expecting payload to be a full answer object
+        update: (state, {payload}) => {
+            return state.map(q => {
+                if (q.answer_id === payload.answer_id)
+                    return payload
+                else
+                    return q
+            })
         }
     }
 })
+
+export const {reducer: already_voted_answers_reducer, actions: already_voted_answers_actions} = createSlice({
+    name: `already_voted_answers`,
+    initialState: [],
+    reducers: {
+        delete: (state, {payload}) => state.filter(ava => {
+            if (ava.answer_id === payload.answer_id && ava.user_id === payload.user_id)
+                return false
+            else
+                return true
+        }),
+        update: (state, {payload}) => {
+            const found = state.find(ava => ava.answer_id === payload.answer_id && ava.user_id === payload.user_id)
+            if (!found) // insert
+                return [...state, payload]
+
+            else // update
+                return state.map(ava => {
+                    if (ava.answer_id === payload.answer_id && ava.user_id === payload.user_id)
+                        return payload
+                    else
+                        return ava
+                })
+        }
+    }
+})
+
+
+
+
 
 
 const store = configureStore({
     reducer: {
         extras: extras_reducer,
         users: users_reducer,
+
         questions: questions_reducer,
         question_comments: question_comments_reducer,
         already_voted_questions: already_voted_questions_reducer,
-        answers: answers_reducer
+
+        answers: answers_reducer,
+        already_voted_answers: already_voted_answers_reducer,
     }
 })
 

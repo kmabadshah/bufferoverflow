@@ -25,30 +25,32 @@ import {useSelector, useDispatch} from 'react-redux'
  *
  */
 
+// TODO: fetch question owner info
 export default function Question() {
     const
     [loading, set_loading] = React.useState(true),
-
     [show_answer_dialog, set_show_answer_dialog] = React.useState(false),
-
     [question_editable, set_question_editable] = React.useState(false),
     [show_comment_dialog, set_show_comment_dialog] = React.useState(false),
 
+    dispatch = useDispatch(),
+    ref = React.useRef(),
+
     {extras: {random_error}, users: {current_user}} = useSelector(store => store),
     question_id = useParams().question_id * 1,
-    user_id = (current_user && current_user.user_id),
 
     question_data = useSelector(store => store.questions.find(q => q.question_id === question_id)),
     answers = useSelector(store => store.answers.filter(ans => ans.question_id === question_id)),
     comments = useSelector(store => store.question_comments.filter(qc => qc.question_id === question_id)),
     already_voted_question = useSelector(store => store.already_voted_questions.find(q => {
         return q.question_id === question_id &&
-            q.user_id === user_id
-    })),
-    vote_flag = already_voted_question && already_voted_question.vote_flag,
-
-    dispatch = useDispatch(),
-    ref = React.useRef()
+            q.user_id === (current_user && current_user.user_id)
+    })) || {
+        question_id: question_id,
+        user_id: current_user && current_user.user_id,
+        vote_flag: null
+    },
+    vote_flag = already_voted_question && already_voted_question.vote_flag;
 
     React.useEffect(() => { wtc(async () => {
         if (!question_data) {
@@ -90,7 +92,6 @@ export default function Question() {
         }
 
         set_loading(false)
-        set_first_render(false)
 
     })(() => dispatch(extras_actions.random_error_on())) }
         ,[])
@@ -98,16 +99,15 @@ export default function Question() {
 
     React.useEffect(() => { wtc(async() => {
         // logged in but not fetched
-        if (current_user && !already_voted_question) {
+        if (current_user && !vote_flag) {
             let res = await axios.get(
                 `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
                 {validateStatus: (status) => status < 500}
             )
             if (res.status === 200)
                 dispatch(already_voted_questions_actions.update({
-                    user_id: current_user.user_id,
+                    ...already_voted_question,
                     vote_flag: res.data.vote_flag,
-                    question_id
                 }))
         }
 
@@ -135,9 +135,8 @@ export default function Question() {
                 throw new Error(res)
 
             dispatch(already_voted_questions_actions.update({
-                user_id: current_user.user_id,
-                vote_flag: `upvoted`,
-                question_id
+                ...already_voted_question,
+                vote_flag: `upvoted`
             }))
 
             // increment counter
@@ -179,7 +178,7 @@ export default function Question() {
             if (res.status !== 204)
                 throw new Error(res)
 
-            dispatch(already_voted_questions_actions.delete({user_id: current_user.user_id, question_id}))
+            dispatch(already_voted_questions_actions.delete(already_voted_question))
         }
     })
 
@@ -203,9 +202,8 @@ export default function Question() {
                 throw new Error(res)
 
             dispatch(already_voted_questions_actions.update({
-                user_id: current_user.user_id,
-                vote_flag: `downvoted`,
-                question_id
+                ...already_voted_question,
+                vote_flag: `downvoted`
             }))
 
             // decrement counter
@@ -247,7 +245,7 @@ export default function Question() {
             if (res.status !== 204)
                 throw new Error(res)
 
-            dispatch(already_voted_questions_actions.delete({user_id: current_user.user_id, question_id}))
+            dispatch(already_voted_questions_actions.delete(already_voted_question))
         }
 
     })
@@ -483,7 +481,7 @@ export default function Question() {
               */}
 
             {answers.map(answer => (
-                <Answer answer_obj={answer} key={answer.answer_id} />
+                <Answer answer_data={answer} key={answer.answer_id} />
             ))}
         </div>
     )
