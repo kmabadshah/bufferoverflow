@@ -34,6 +34,7 @@ export function wtc(f) {
             }
             catch(e) {
                 console.log(`-------------ERROR_BEGIN---------`)
+                console.dir(e)
                 console.trace(e)
                 console.log(`-------------ERROR_END---------`)
 
@@ -50,6 +51,7 @@ export function wtc(f) {
         }
         catch(e) {
             console.log(`-------------ERROR_BEGIN---------`)
+            console.dir(e)
             console.trace(e)
             console.log(`-------------ERROR_END---------`)
 
@@ -62,41 +64,41 @@ export function wtc(f) {
 
 
 export function new_user_obj({user_id, username, image_url, profile_description, timestamp}) {
-    if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
-    else if (!username) throw new Error(`invalid username: "${username}"`)
-    else if (!image_url) throw new Error(`invalid image_url: "${image_url}"`)
-    else if (!timestamp) throw new Error(`invalid timestamp: "${timestamp}"`)
+    if (!user_id) throw `invalid user_id: "${user_id}"`
+    else if (!username) throw `invalid username: "${username}"`
+    else if (!image_url) throw `invalid image_url: "${image_url}"`
+    else if (!timestamp) throw `invalid timestamp: "${timestamp}"`
 
     return { user_id, username, image_url, profile_description, timestamp }
 }
 
 export function new_notification_obj({notification_id, notification_title, notification_link, timestamp, user_id}) {
-    if (!notification_id) throw new Error(`invalid notification_id: "${notification_id}"`)
-    else if (!notification_title) throw new Error(`invalid notification_title: "${notification_title}"`)
-    else if (!notification_link) throw new Error(`invalid notification_link: "${notification_link}"`)
-    else if (!timestamp) throw new Error(`invalid timestamp: "${timestamp}"`)
-    else if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
+    if (!notification_id) throw `invalid notification_id: "${notification_id}"`
+    else if (!notification_title) throw `invalid notification_title: "${notification_title}"`
+    else if (!notification_link) throw `invalid notification_link: "${notification_link}"`
+    else if (!timestamp) throw `invalid timestamp: "${timestamp}"`
+    else if (!user_id) throw `invalid user_id: "${user_id}"`
 
     return {notification_id, notification_title, notification_link, timestamp, user_id}
 }
 
 export function new_question_obj({ question_id, title, description, user_id, timestamp }) {
-    if (!question_id) throw new Error(`invalid question_id: "${question_id}"`)
-    else if (!title) throw new Error(`invalid title: "${title}"`)
-    else if (!description) throw new Error(`invalid description: "${description}"`)
-    else if (!user_id) throw new Error(`invalid user_id: "${user_id}"`)
-    else if (!timestamp) throw new Error(`invalid timestamp: "${timestamp}"`)
+    if (!question_id) throw `invalid question_id: "${question_id}"`
+    else if (!title) throw `invalid title: "${title}"`
+    else if (!description) throw `invalid description: "${description}"`
+    else if (!user_id) throw `invalid user_id: "${user_id}"`
+    else if (!timestamp) throw `invalid timestamp: "${timestamp}"`
 
     return { question_id, title, description, user_id, timestamp }
 }
 
 export function new_answer_obj({answer_id, text, user_id, question_id, vote_count, timestamp}) {
-    if (!answer_id) throw new Error(`invalid answer_id: ${answer_id}`)
-    else if (!text) throw new Error(`invalid text: ${text}`)
-    else if (!user_id) throw new Error(`invalid user_id: ${user_id}`)
-    else if (!question_id) throw new Error(`invalid question_id: ${question_id}`)
-    else if (vote_count !== 0 && !vote_count) throw new Error(`invalid vote_count: ${vote_count}`)
-    else if (!timestamp) throw new Error(`invalid timestamp: ${timestamp}`)
+    if (!answer_id) throw `invalid answer_id: ${answer_id}`
+    else if (!text) throw `invalid text: ${text}`
+    else if (!user_id) throw `invalid user_id: ${user_id}`
+    else if (!question_id) throw `invalid question_id: ${question_id}`
+    else if (vote_count !== 0 && !vote_count) throw `invalid vote_count: ${vote_count}`
+    else if (!timestamp) throw `invalid timestamp: ${timestamp}`
 
     return { answer_id, text, user_id, question_id, vote_count, timestamp }
 }

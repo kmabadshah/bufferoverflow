@@ -132,7 +132,7 @@ export default function Question() {
                 +`upvoted`
             )
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(already_voted_questions_actions.update({
                 ...already_voted_question,
@@ -142,7 +142,7 @@ export default function Question() {
             // increment counter
             res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             current_vote_count++;
 
@@ -151,7 +151,7 @@ export default function Question() {
                 res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
 
                 if (res.status !== 204)
-                    throw new Error(res)
+                    throw res
 
                 current_vote_count++;
             }
@@ -164,7 +164,7 @@ export default function Question() {
             // increment the counter
             let res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(questions_actions.update({
                 ...question_data,
@@ -176,7 +176,7 @@ export default function Question() {
                 `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`
             )
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(already_voted_questions_actions.delete(already_voted_question))
         }
@@ -199,7 +199,7 @@ export default function Question() {
                 +`downvoted`
             )
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(already_voted_questions_actions.update({
                 ...already_voted_question,
@@ -209,7 +209,7 @@ export default function Question() {
             // decrement counter
             res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             current_vote_count--;
 
@@ -217,7 +217,7 @@ export default function Question() {
             if (vote_flag === `upvoted`) {
                 res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
                 if (res.status !== 204)
-                    throw new Error(res)
+                    throw res
 
                 current_vote_count--;
             }
@@ -231,7 +231,7 @@ export default function Question() {
             // increment the counter
             let res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(questions_actions.update({
                 ...question_data,
@@ -243,7 +243,7 @@ export default function Question() {
                 `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`
             )
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(already_voted_questions_actions.delete(already_voted_question))
         }
@@ -264,7 +264,7 @@ export default function Question() {
             const res = await axios.put(`${backend_url}/questions/${question_id}`, {description: ref.current.textContent})
 
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
 
             dispatch(questions_actions.update({
                 ...question_data,
@@ -329,7 +329,7 @@ export default function Question() {
             user_id: current_user.user_id
         })
         if (res.status !== 200)
-            throw new Error(res)
+            throw res
 
         dispatch(question_comments_actions.add(res.data))
         handle_comment_click()
@@ -353,7 +353,7 @@ export default function Question() {
 
         const res = await axios.post(`${backend_url}/answers`, answer_obj)
         if (res.status !== 200)
-            throw new Error(res)
+            throw res
 
         dispatch(answers_actions.add(
             new_answer_obj(res.data)

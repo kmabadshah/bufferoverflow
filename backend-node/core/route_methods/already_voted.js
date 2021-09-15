@@ -119,7 +119,7 @@ export const already_voted_table_get_async = wtc(async(req, res, table_name_sing
         && table_name_singular !== `question`
         && table_name_singular !== `question_comment`)
     {
-        throw new Error(`Invalid argument table_name_singular`)
+        throw `Invalid argument table_name_singular`
     }
 
     const user_id = req.params.user_id
@@ -170,7 +170,7 @@ export const already_voted_table_delete_async = wtc(async(req, res, table_name_s
         && table_name_singular !== `question`
         && table_name_singular !== `question_comment`)
     {
-        throw new Error(`Invalid argument table_name_singular`)
+        throw `Invalid argument table_name_singular`
     }
 
     const user_id = req.params.user_id

@@ -54,7 +54,7 @@ export default function Answer({answer_data}) {
                 user_id: answer_data.user_id
             })
             if (res.status !== 200)
-                throw new Error(res)
+                throw res
 
             dispatch(users_actions.add(res.data))
         }
@@ -69,7 +69,7 @@ export default function Answer({answer_data}) {
         if (answer_text_ref.current.textContent && answer_text_ref.current.textContent !== answer_data.text) {
             const res = await axios.put(`${backend_url}/answers/${answer_data.answer_id}`, {text: answer_text_ref.current.textContent})
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(answers_actions.update({
                 ...answer_data, 
                 text: answer_text_ref.current.textContent
@@ -105,7 +105,7 @@ export default function Answer({answer_data}) {
             // decrement
             let res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(answers_actions.update({
                 ...answer_data, 
                 vote_count: answer_data.vote_count-1
@@ -114,7 +114,7 @@ export default function Answer({answer_data}) {
             // unlock
             res = await axios.delete(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(already_voted_answers_actions.delete(already_voted_answer))
         }
 
@@ -124,13 +124,13 @@ export default function Answer({answer_data}) {
             // increment
             let res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             current_vote_count++;
 
             // lock
             res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/upvoted`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(already_voted_answers_actions.update({
                 ...already_voted_answer,
                 vote_flag: `upvoted`
@@ -140,7 +140,7 @@ export default function Answer({answer_data}) {
                 // increment again
                 res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
                 if (res.status !== 204)
-                    throw new Error(res)
+                    throw res
                 current_vote_count++;
             }
             dispatch(answers_actions.update({
@@ -172,7 +172,7 @@ export default function Answer({answer_data}) {
             // increment
             let res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(answers_actions.update({
                 ...answer_data, 
                 vote_count: answer_data.vote_count+1
@@ -181,7 +181,7 @@ export default function Answer({answer_data}) {
             // unlock
             res = await axios.delete(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(already_voted_answers_actions.delete(already_voted_answer))
         }
 
@@ -191,13 +191,13 @@ export default function Answer({answer_data}) {
             // decrement
             let res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             current_vote_count--;
 
             // lock
             res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/downvoted`)
             if (res.status !== 204)
-                throw new Error(res)
+                throw res
             dispatch(already_voted_answers_actions.update({
                 ...already_voted_answer,
                 vote_flag: `downvoted`
@@ -207,7 +207,7 @@ export default function Answer({answer_data}) {
                 // decrement again
                 res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
                 if (res.status !== 204)
-                    throw new Error(res)
+                    throw res
                 current_vote_count--;
             }
 
