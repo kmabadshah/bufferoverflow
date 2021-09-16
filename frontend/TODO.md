@@ -10,7 +10,9 @@
 [*] TODO: replace webpack with snowpack
 [*] TODO: cache all vote flags into redux store
 [*] TODO: cache answer data
-[] TODO: process and cache question comment data
+[*] TODO: process and cache question comment data
+[] TODO: question comment vote lock when logged out
+[] TODO: sort question comments based on 1) vote_count, 2) timestamp(low->high ascending order)
 [] TODO: implement logout vote unlock for comment voting
 [] TODO: comment vote locking
 [] TODO: unvote a comment
@@ -19,6 +21,7 @@
 
 []  TODO: implement the user profile page
 []  TODO: implement the notification system
+
 
 
 

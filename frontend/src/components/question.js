@@ -50,7 +50,15 @@ export default function Question() {
         user_id: current_user && current_user.user_id,
         vote_flag: null
     },
-    vote_flag = already_voted_question && already_voted_question.vote_flag;
+    vote_flag = already_voted_question.vote_flag;
+
+
+
+
+
+
+
+
 
     React.useEffect(() => { wtc(async () => {
         if (!question_data) {
@@ -97,6 +105,12 @@ export default function Question() {
         ,[])
 
 
+
+
+
+
+
+
     React.useEffect(() => { wtc(async() => {
         // logged in but not fetched
         if (current_user && !vote_flag) {
@@ -113,6 +127,13 @@ export default function Question() {
 
     })(() => dispatch(extras_actions.random_error_on())) }
         ,[current_user])
+
+
+
+
+
+
+
 
 
     const handle_question_vote_up_click = wtc(async() => {
@@ -181,6 +202,14 @@ export default function Question() {
             dispatch(already_voted_questions_actions.delete(already_voted_question))
         }
     })
+
+
+
+
+
+
+
+
 
     const handle_question_vote_down_click = wtc(async () => {
         if (!current_user)
@@ -251,6 +280,8 @@ export default function Question() {
     })
 
 
+
+
     function handle_edit_question_click() {
         // make the description editable
         set_question_editable(true)
@@ -258,6 +289,13 @@ export default function Question() {
         ref.current.classList.add(`border`)
         ref.current.classList.add(`border-red-900`)
     }
+
+
+
+
+
+
+
 
     const handle_edit_question_submit_click = wtc(async() => {
         if (ref.current.textContent && ref.current.textContent !== question_data.description) {
@@ -277,6 +315,12 @@ export default function Question() {
         ref.current.classList.remove(`border`)
         ref.current.classList.remove(`border-red-900`)
     })
+
+
+
+
+
+
 
 
     const sort_by_vote_count_and_timestamp = wtc((a, b) => {
@@ -299,9 +343,13 @@ export default function Question() {
 
     })
 
+
+
     async function handle_username_click(user_id) {
         // history.push() to /users/{username.user_id}
     }
+
+
 
     function handle_answer_click() {
         // show the answer dialog if closed
@@ -310,12 +358,18 @@ export default function Question() {
         set_show_comment_dialog(false)
     }
 
+
+
     function handle_comment_click() {
         // show the answer dialog if closed
         // hide the answer dialog if open
         set_show_comment_dialog(prev => !prev)
         set_show_answer_dialog(false)
     }
+
+
+
+
 
     const handle_comment_submit_click = wtc(async(e) => {
         e.preventDefault()
@@ -334,6 +388,11 @@ export default function Question() {
         dispatch(question_comments_actions.add(res.data))
         handle_comment_click()
     })
+
+
+
+
+
 
     const handle_answer_submit_click = wtc(async(e) => {
         e.preventDefault()
@@ -471,7 +530,7 @@ export default function Question() {
                 right side, username, timestamp
                 */}
             {comments.map(c => (
-                <QuestionComment comment_obj={c} key={c.comment_id} />
+                <QuestionComment comment_data={c} key={c.comment_id} />
             ))}
 
             {/*
@@ -485,8 +544,6 @@ export default function Question() {
             ))}
         </div>
     )
-
-
 }
 
 

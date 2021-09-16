@@ -156,6 +156,15 @@ export const {reducer: question_comments_reducer, actions: question_comments_act
 
             else
                 return [...state, payload]
+        },
+
+        update: (state, {payload}) => {
+            return state.map(c => {
+                if (c.comment_id === payload.comment_id && c.user_id === payload.user_id)
+                    return payload
+                else
+                    return c
+            })
         }
     }
 })
