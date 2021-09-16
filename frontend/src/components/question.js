@@ -1,7 +1,7 @@
 import React from 'react'
 import {useParams} from 'react-router-dom'
 import axios from 'axios'
-import {backend_url, Navbar, new_answer_obj, new_user_obj, get_user_info_async, Br, wtc} from './utilities'
+import {backend_url, Navbar, sort_by_vote_count_and_timestamp, new_answer_obj, new_user_obj, get_user_info_async, Br, wtc} from './utilities'
 import Answer from './answer'
 import {extras_actions, users_actions, questions_actions, already_voted_questions_actions, question_comments_actions, answers_actions} from '../index.js'
 import QuestionComment from './question_comment'
@@ -322,29 +322,6 @@ export default function Question() {
 
 
 
-
-    const sort_by_vote_count_and_timestamp = wtc((a, b) => {
-        // sort by vote count, highest first
-        if (a.vote_count < b.vote_count)
-            return 1
-
-        else if (a.vote_count === b.vote_count) {
-            // sort by timestamp, highest(newest) first
-            const ta = new Date(a.timestamp)
-            const tb = new Date(b.timestamp)
-
-            if (ta > tb)
-                return 1
-
-            return 0
-        }
-
-        return 0
-
-    })
-
-
-
     async function handle_username_click(user_id) {
         // history.push() to /users/{username.user_id}
     }
@@ -420,11 +397,6 @@ export default function Question() {
 
         set_show_answer_dialog(false)
     })
-
-
-
-
-
 
 
 

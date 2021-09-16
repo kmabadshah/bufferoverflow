@@ -63,6 +63,35 @@ export function wtc(f) {
 }
 
 
+
+
+
+/* sort based on 1)_vote_count and 2)_timestamp(low->high ascending) */
+export const sort_by_vote_count_and_timestamp = wtc((a, b) => {
+    // sort by vote count, highest first
+    if (a.vote_count < b.vote_count)
+        return 1
+
+    else if (a.vote_count === b.vote_count) {
+        // sort by timestamp, lowest->highest (old->new)
+        const ta = new Date(a.timestamp)
+        const tb = new Date(b.timestamp)
+
+        if (ta > tb)
+            return 1
+        else
+            return 0
+    }
+
+    else return 0
+})
+
+
+
+
+
+
+
 export function new_user_obj({user_id, username, image_url, profile_description, timestamp}) {
     if (!user_id) throw `invalid user_id: "${user_id}"`
     else if (!username) throw `invalid username: "${username}"`
@@ -71,6 +100,10 @@ export function new_user_obj({user_id, username, image_url, profile_description,
 
     return { user_id, username, image_url, profile_description, timestamp }
 }
+
+
+
+
 
 export function new_notification_obj({notification_id, notification_title, notification_link, timestamp, user_id}) {
     if (!notification_id) throw `invalid notification_id: "${notification_id}"`
@@ -82,6 +115,10 @@ export function new_notification_obj({notification_id, notification_title, notif
     return {notification_id, notification_title, notification_link, timestamp, user_id}
 }
 
+
+
+
+
 export function new_question_obj({ question_id, title, description, user_id, timestamp }) {
     if (!question_id) throw `invalid question_id: "${question_id}"`
     else if (!title) throw `invalid title: "${title}"`
@@ -91,6 +128,10 @@ export function new_question_obj({ question_id, title, description, user_id, tim
 
     return { question_id, title, description, user_id, timestamp }
 }
+
+
+
+
 
 export function new_answer_obj({answer_id, text, user_id, question_id, vote_count, timestamp}) {
     if (!answer_id) throw `invalid answer_id: ${answer_id}`
@@ -102,6 +143,10 @@ export function new_answer_obj({answer_id, text, user_id, question_id, vote_coun
 
     return { answer_id, text, user_id, question_id, vote_count, timestamp }
 }
+
+
+
+
 
 
 export async function fetch_token_async(string_before_api_token) {
@@ -130,6 +175,12 @@ export async function fetch_token_async(string_before_api_token) {
 }
 
 
+
+
+
+
+
+
 export const get_user_info_async = wtc(async (token_promise) => {
     const token = await token_promise
     /* get the user data BEGIN */
@@ -151,6 +202,10 @@ export function Br({height}) {
         <div style={{flexBasis: `100%`, height: `${height || 0}px`}}></div>
     )
 }
+
+
+
+
 
 
 
@@ -195,6 +250,9 @@ export function Navbar() {
     })
 
 
+
+
+
     return (
         <div id='navbar' className={`flex justify-between brder border-red-900 mt-10`}>
             <button className={``} onClick={handle_logo_click}>bufferoverflow</button>
@@ -234,8 +292,6 @@ export function Navbar() {
         set_notification_icon_clicked(false)
         set_profile_icon_clicked(prev => !prev)
     }
-
-
 
 
 

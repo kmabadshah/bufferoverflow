@@ -211,7 +211,7 @@ export default function QuestionComment({comment_data}) {
                     </div>
                     <button className={`ml-10 inline bg-blue-400`} onClick={edit_comment_clicked ? handle_edit_comment_submit_click : handle_edit_comment_click}>{edit_comment_clicked ? `submit` : `edit`}</button>
                     <p className={`ml-3 inline bg-red-900`}>anonymous</p>
-                    <p className={`ml-3 inline bg-green-400`}>{comment_data.timestamp}</p>
+                    <p className={`ml-3 inline bg-green-900`}>{comment_data.timestamp}</p>
                 </div>
             </div>
         </div>
