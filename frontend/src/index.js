@@ -119,11 +119,18 @@ reducers: {
         state.current_user = null
     },
 
-    add: (state, {payload}) => {
-        state.list.push(payload)
+    // adds if not available, update otherwise
+    update: (state, {payload}) => {
+        const exists = state.list.find(u => u.user_id === payload.user_id)
+        
+        if (!exists) 
+            state.list = [...state.list, payload]
+        else 
+            state.list = state.list.map(u => u.user_id === payload.user_id ? payload:u)
     }
 }
 })
+
 
 
 
@@ -206,11 +213,15 @@ export const {reducer: answers_reducer, actions: answers_actions} = createSlice(
     initialState: [],
     reducers: {
         add: (state, {payload}) => {
-            if (payload.constructor.name === `Array`)
-                return [...state, ...payload]
+            let new_state;
 
+            if (payload.constructor.name === `Array`)
+                new_state = [...state, ...payload]
             else
-                return [...state, payload]
+                new_state =  [...state, payload]
+
+            new_state.sort(sort_by_vote_count_and_timestamp)
+            return new_state
         },
 
         // expecting payload to be a full answer object

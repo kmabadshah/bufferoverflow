@@ -14,6 +14,7 @@ export default function Answer({answer_data}) {
     answer_text_ref = React.useRef(),
 
     current_user = useSelector(store => store.users.current_user),
+    random_error = useSelector(store => store.extras.random_error),
     already_voted_answer = useSelector(store => store.already_voted_answers.find(ava => {
         return ava.answer_id === answer_data.answer_id
             && ava.user_id === (current_user && current_user.user_id)
@@ -23,12 +24,14 @@ export default function Answer({answer_data}) {
         vote_flag: null
     },
     vote_flag = already_voted_answer && already_voted_answer.vote_flag,
-    answer_owner_data = useSelector(store => store.users.list.find(u => u.user_id === answer_data.user_id)) || {};
+    answer_owner_data = useSelector(store => {
+        return store.users.list.find(u => u.user_id === answer_data.user_id) 
+    }) || {};
 
 
 
     React.useEffect(() => { wtc(async() => {
-        // fetch the vote flag
+        // logged in but not fetched yet
         if (current_user && !vote_flag) {
             const res = await axios.get(`
                   ${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}
@@ -53,12 +56,11 @@ export default function Answer({answer_data}) {
             let res = await axios.post(`${backend_url}/users`, {
                 user_id: answer_data.user_id
             })
-            if (res.status !== 200)
-                throw res
-
-            dispatch(users_actions.add(res.data))
+            if (res.status !== 200) throw res
+            dispatch(users_actions.update(res.data))
         }
         set_loading(false)
+
     })(() => dispatch(extras_actions.random_error_on())) }
         ,[])
 
@@ -104,8 +106,7 @@ export default function Answer({answer_data}) {
         if (vote_flag === `upvoted`) {
             // decrement
             let res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             dispatch(answers_actions.update({
                 ...answer_data, 
                 vote_count: answer_data.vote_count-1
@@ -113,8 +114,7 @@ export default function Answer({answer_data}) {
 
             // unlock
             res = await axios.delete(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             dispatch(already_voted_answers_actions.delete(already_voted_answer))
         }
 
@@ -123,14 +123,12 @@ export default function Answer({answer_data}) {
 
             // increment
             let res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             current_vote_count++;
 
             // lock
             res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/upvoted`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             dispatch(already_voted_answers_actions.update({
                 ...already_voted_answer,
                 vote_flag: `upvoted`
@@ -139,8 +137,7 @@ export default function Answer({answer_data}) {
             if (vote_flag === `downvoted`) {
                 // increment again
                 res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
-                if (res.status !== 204)
-                    throw res
+                if (res.status !== 204) throw res
                 current_vote_count++;
             }
             dispatch(answers_actions.update({
@@ -171,8 +168,7 @@ export default function Answer({answer_data}) {
         if (vote_flag === `downvoted`) {
             // increment
             let res = await axios.get(`${backend_url}/increment_vote/answers/${answer_data.answer_id}`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             dispatch(answers_actions.update({
                 ...answer_data, 
                 vote_count: answer_data.vote_count+1
@@ -180,8 +176,7 @@ export default function Answer({answer_data}) {
 
             // unlock
             res = await axios.delete(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             dispatch(already_voted_answers_actions.delete(already_voted_answer))
         }
 
@@ -190,14 +185,12 @@ export default function Answer({answer_data}) {
 
             // decrement
             let res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             current_vote_count--;
 
             // lock
             res = await axios.get(`${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}/downvoted`)
-            if (res.status !== 204)
-                throw res
+            if (res.status !== 204) throw res
             dispatch(already_voted_answers_actions.update({
                 ...already_voted_answer,
                 vote_flag: `downvoted`
@@ -206,8 +199,7 @@ export default function Answer({answer_data}) {
             if (vote_flag === `upvoted`) {
                 // decrement again
                 res = await axios.get(`${backend_url}/decrement_vote/answers/${answer_data.answer_id}`)
-                if (res.status !== 204)
-                    throw res
+                if (res.status !== 204) throw res
                 current_vote_count--;
             }
 
@@ -218,27 +210,26 @@ export default function Answer({answer_data}) {
         }
     })
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (random_error) {
+        return `something went wrong, please try refreshing the page`
+    }
+
     if (loading)
         return <p>loading...</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     return (<>
@@ -259,7 +250,7 @@ export default function Answer({answer_data}) {
         </div>
 
         <div className={`boder border-red-900 flex flex-wrap justify-end mt-20`}>
-            {current_user &&
+            {current_user && current_user.username === answer_owner_data.username &&  
             <button
                 className={`ml-40 w-16 mt-2 h-12`}
                 onClick={answer_editable ? handle_edit_answer_submit_click : handle_edit_answer_click}

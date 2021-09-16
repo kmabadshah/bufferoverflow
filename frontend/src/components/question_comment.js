@@ -1,16 +1,19 @@
 import React from 'react'
 import axios from 'axios'
 import {backend_url, Navbar, new_answer_obj, Br, wtc} from './utilities'
-import {extras_actions, question_comments_actions, already_voted_question_comments_actions} from '../index.js'
+import {extras_actions, question_comments_actions, users_actions, already_voted_question_comments_actions} from '../index.js'
 import {useSelector, useDispatch} from 'react-redux'
 
 export default function QuestionComment({comment_data}) {
     const 
+    [loading, set_loading] = React.useState(true),
     dispatch = useDispatch(),
     comment_text_ref = React.useRef(),
+    [edit_comment_clicked, set_edit_comment_clicked] = React.useState(false),
 
     /* get the flag using useSelector() */
     current_user = useSelector(store => store.users.current_user),
+    random_error = useSelector(store => store.extras.random_error),
     already_voted_question_comment = useSelector(store => store.already_voted_question_comments.find(qc => {
         return qc.comment_id === comment_data.comment_id 
         && qc.user_id === (current_user && current_user.user_id)
@@ -20,21 +23,36 @@ export default function QuestionComment({comment_data}) {
         vote_flag: null
     },
     vote_flag = already_voted_question_comment.vote_flag,
-    [edit_comment_clicked, set_edit_comment_clicked] = React.useState(false);
+    comment_owner_data = useSelector(store => {
+        return store.users.list.find(u => u.user_id === comment_data.user_id) 
+    }) || {};
 
 
 
 
 
-    React.useEffect(() => { wtc(async() => {
-        // fetch and update vote flag, if any
-        const res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${comment_data.user_id}`)
-        if (res.status !== 200 && res.status !== 204)
-            throw res
-        if (res.status === 200)
-            dispatch(already_voted_question_comments_actions.update(res.data))
 
-    })(() => dispatch(extras_actions.random_error_on())) }, [])
+    React.useEffect(() => wtc(async() => {
+        if (current_user && !vote_flag) {
+            // fetch and update vote flag, if any
+            const res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${current_user.user_id}`)
+            if (res.status !== 200 && res.status !== 204) 
+                throw res
+            if (res.status === 200) 
+                dispatch(already_voted_question_comments_actions.update(res.data))
+        }
+
+    })(() => dispatch(extras_actions.random_error_on())), [current_user])
+
+
+    React.useEffect(() => wtc(async() => {
+        // fetch comment_owner_data
+        const res = await axios.post(`${backend_url}/users`, {user_id: comment_owner_data.user_id})
+        if (res.status !== 200) throw res
+        dispatch(users_actions.update(res.data))
+
+        set_loading(false)
+    })(() => dispatch(extras_actions.random_error_on())), [])
 
 
 
@@ -186,8 +204,13 @@ export default function QuestionComment({comment_data}) {
 
 
 
+    if (random_error) {
+        return `something went wrong, please try refreshing the page`
+    }
 
-
+    if (loading) {
+        return `loading...`
+    }
 
     return (
         <div className={`ml-80 mt-10 flex`}>
@@ -209,8 +232,15 @@ export default function QuestionComment({comment_data}) {
                     >
                         {comment_data.text}
                     </div>
-                    <button className={`ml-10 inline bg-blue-400`} onClick={edit_comment_clicked ? handle_edit_comment_submit_click : handle_edit_comment_click}>{edit_comment_clicked ? `submit` : `edit`}</button>
-                    <p className={`ml-3 inline bg-red-900`}>anonymous</p>
+                    {current_user && current_user.username === comment_owner_data.username && (
+                        <button 
+                            className={`ml-10 inline bg-blue-400`} 
+                            onClick={edit_comment_clicked ? handle_edit_comment_submit_click : handle_edit_comment_click}
+                        >
+                            {edit_comment_clicked ? `submit` : `edit`}
+                        </button>
+                    )}
+                    <p className={`ml-3 inline bg-red-900`}>{comment_owner_data.username}</p>
                     <p className={`ml-3 inline bg-green-900`}>{comment_data.timestamp}</p>
                 </div>
             </div>

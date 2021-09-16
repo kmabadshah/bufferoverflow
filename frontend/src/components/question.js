@@ -36,7 +36,8 @@ export default function Question() {
     dispatch = useDispatch(),
     ref = React.useRef(),
 
-    {extras: {random_error}, users: {current_user}} = useSelector(store => store),
+    random_error = useSelector(store => store.extras.random_error),
+    current_user = useSelector(store => store.users.current_user),
     question_id = useParams().question_id * 1,
 
     question_data = useSelector(store => store.questions.find(q => q.question_id === question_id)),
@@ -50,60 +51,10 @@ export default function Question() {
         user_id: current_user && current_user.user_id,
         vote_flag: null
     },
-    vote_flag = already_voted_question.vote_flag;
-
-
-
-
-
-
-
-
-
-    React.useEffect(() => { wtc(async () => {
-        if (!question_data) {
-            // fetch the question with question_id
-            const qres = await axios.get(`${backend_url}/questions/${question_id}`)
-            dispatch(questions_actions.add(qres.data))
-
-            // GET /question_comments/{question_id}
-            const cres = await axios.get(`${backend_url}/question_comments/${question_id}`)
-            dispatch(question_comments_actions.add(cres.data))
-
-            // get the answers
-            // GET /answers/{question_id}
-            const ares = await axios.get(`${backend_url}/answers/${qres.data.question_id}`)
-            ares.data.sort(sort_by_vote_count_and_timestamp)
-            dispatch(answers_actions.add(ares.data))
-
-        } else {
-            if (!comments || comments.length === 0) {
-                // GET /question_comments/{question_id}
-                const cres = await axios.get(`${backend_url}/question_comments/${question_id}`)
-                dispatch(question_comments_actions.add(cres.data))
-            }
-
-            if (!answers || answers.length === 0) {
-                // get the answers
-                // GET /answers/{question_id}
-                const ares = await axios.get(`${backend_url}/answers/${question_id}`)
-                ares.data.sort(sort_by_vote_count_and_timestamp)
-                dispatch(answers_actions.add(ares.data))
-            }
-        }
-
-        if (!current_user && localStorage.getItem('github_api_token')) {
-            let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
-            const {data} = await axios.post(`${backend_url}/users`, user_data)
-            user_data = new_user_obj(data)
-            dispatch(users_actions.set_current_user(user_data))
-        }
-
-        set_loading(false)
-
-    })(() => dispatch(extras_actions.random_error_on())) }
-        ,[])
-
+    vote_flag = already_voted_question.vote_flag,
+    question_owner_data = useSelector(store => {
+        return store.users.list.find(u => u.user_id === question_data.user_id) 
+    }) || {};
 
 
 
@@ -124,9 +75,65 @@ export default function Question() {
                     vote_flag: res.data.vote_flag,
                 }))
         }
-
     })(() => dispatch(extras_actions.random_error_on())) }
         ,[current_user])
+
+
+    React.useEffect(() => { wtc(async () => {
+        let res;
+        if (!question_data) {
+            // fetch the question with question_id
+            res = await axios.get(`${backend_url}/questions/${question_id}`)
+            if (res.status !== 200) throw res
+            dispatch(questions_actions.add(res.data))
+            const {user_id:question_owner_user_id} = res.data
+
+            // fetch the question owner's info
+            res = await axios.post(`${backend_url}/users`, { user_id: question_owner_user_id })
+            if (res.status !== 200) throw res
+            dispatch(users_actions.update(res.data))
+
+            // get question_comments
+            res = await axios.get(`${backend_url}/question_comments/${question_id}`)
+            if (res.status !== 200) throw res
+            dispatch(question_comments_actions.add(res.data))
+
+            // get the answers
+            res = await axios.get(`${backend_url}/answers/${question_id}`)
+            if (res.status !== 200) throw res
+            dispatch(answers_actions.add(res.data))
+
+        } else {
+            if (!comments || comments.length === 0) {
+                // get question comments
+                res = await axios.get(`${backend_url}/question_comments/${question_id}`)
+                if (res.status !== 200) throw res
+                dispatch(question_comments_actions.add(res.data))
+            }
+
+            if (!answers || answers.length === 0) {
+                // get the answers related to question
+                res = await axios.get(`${backend_url}/answers/${question_id}`)
+                if (res.status !== 200) throw res
+                dispatch(answers_actions.add(res.data))
+            }
+        }
+
+        if (!current_user && localStorage.getItem('github_api_token')) {
+            let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
+            res = await axios.post(`${backend_url}/users`, user_data)
+            dispatch(users_actions.set_current_user(new_user_obj(res.data)))
+        }
+
+        set_loading(false)
+
+    })(() => dispatch(extras_actions.random_error_on())) }
+        ,[])
+
+
+
+
+
 
 
 
@@ -227,9 +234,7 @@ export default function Question() {
                 +current_user.user_id+`/`
                 +`downvoted`
             )
-            if (res.status !== 204)
-                throw res
-
+            if (res.status !== 204) throw res
             dispatch(already_voted_questions_actions.update({
                 ...already_voted_question,
                 vote_flag: `downvoted`
@@ -237,20 +242,15 @@ export default function Question() {
 
             // decrement counter
             res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
-            if (res.status !== 204)
-                throw res
-
+            if (res.status !== 204) throw res
             current_vote_count--;
 
             // decrement again
             if (vote_flag === `upvoted`) {
                 res = await axios.get(`${backend_url}/decrement_vote/questions/${question_data.question_id}`)
-                if (res.status !== 204)
-                    throw res
-
+                if (res.status !== 204) throw res
                 current_vote_count--;
             }
-
 
             dispatch(questions_actions.update({...question_data, vote_count: current_vote_count}))
         }
@@ -259,9 +259,7 @@ export default function Question() {
         else if (vote_flag === `downvoted`) {
             // increment the counter
             let res = await axios.get(`${backend_url}/increment_vote/questions/${question_data.question_id}`)
-            if (res.status !== 204)
-                throw res
-
+            if (res.status !== 204) throw res
             dispatch(questions_actions.update({
                 ...question_data,
                 vote_count: question_data.vote_count+1
@@ -271,9 +269,7 @@ export default function Question() {
             res = await axios.delete(
                 `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`
             )
-            if (res.status !== 204)
-                throw res
-
+            if (res.status !== 204) throw res
             dispatch(already_voted_questions_actions.delete(already_voted_question))
         }
 
@@ -388,9 +384,7 @@ export default function Question() {
         }
 
         const res = await axios.post(`${backend_url}/answers`, answer_obj)
-        if (res.status !== 200)
-            throw res
-
+        if (res.status !== 200) throw res
         dispatch(answers_actions.add(
             new_answer_obj(res.data)
         ))
@@ -430,7 +424,7 @@ export default function Question() {
             <h1 className={`text-5xl mt-10`}>{question_data.title}</h1>
 
             <div className={`flex mt-5`}>
-                <p className={`mr-5`}>by: anonymous</p>
+                <p className={`mr-5`}>by: {question_owner_data.username}</p>
                 <p>at: {question_data.timestamp}</p>
             </div>
 
@@ -460,7 +454,7 @@ export default function Question() {
 
             <div className={`flex mt-40 ml-40`}>
                 {current_user && <button onClick={handle_answer_click}>answer_button</button>}
-                {current_user &&
+                {current_user && current_user.username === question_owner_data.username && 
                     <button
                         className={`ml-[20px]`}
                         onClick={question_editable ? handle_edit_question_submit_click : handle_edit_question_click }
@@ -474,7 +468,10 @@ export default function Question() {
                 <div className={`h-16 w-16 ml-auto flex items-center border border-red-900`}>
                     <p className={`text-center`}>usrimg</p>
                 </div>
-                <button className={`ml-5`} onClick={() => handle_username_click(current_user.user_id)}>anonymous</button>
+                <button 
+                    className={`ml-5`} 
+                    onClick={() => handle_username_click(current_user.user_id)}
+                >{question_owner_data.username}</button>
             </div>
 
             {/*

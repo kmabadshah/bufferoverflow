@@ -3,16 +3,15 @@ import axios from 'axios'
 import pg_promise from 'pg-promise'
 import {user_create_conditionally_async} from './route_methods/users.js'
 import {question_create_async, question_update_async, question_get_async, question_get_all_async} from './route_methods/questions.js'
-import {increment_or_decrement_table_vote_async} from './route_methods/shared.js'
+import {increment_or_decrement_table_vote_async, wtc} from './route_methods/shared.js'
 import {answer_create_async, answer_update_async, answer_get_async} from './route_methods/answers.js'
 import {comment_create_async, comment_get_async, comment_update_async} from './route_methods/comments.js'
-
+import {parse} from 'url'
 import {
-  already_voted_table_create_async,
-  already_voted_table_get_async,
-  already_voted_table_delete_async,
+    already_voted_table_create_async,
+    already_voted_table_get_async,
+    already_voted_table_delete_async,
 } from './route_methods/already_voted.js'
-
 import exws from 'express-ws'
 import { WebSocketServer } from 'ws'
 import compression from 'compression'
@@ -23,50 +22,48 @@ const port = 8000
 const pgp = pg_promise()
 export const db = pgp('postgres://awkward:awk@localhost:5432/bufferoverflow')
 
-app.use(compression({level: 9, threshold: 0}))
+app.use(compression({level: 9, threshold: 1000}))
 app.use(express.json())
 
 // cors middleware
 app.use((req, res, next) => {
-  res.set({
-    'Access-Control-Allow-Origin': 'http://localhost:3000',
-    'Access-Control-Allow-Methods': 'PUT, GET, DELETE',
-    'Access-Control-Allow-Headers': 'content-type',
-  })
+    res.set({
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
+        'Access-Control-Allow-Methods': 'POST, PUT, GET, DELETE',
+        'Access-Control-Allow-Headers': 'content-type',
+    })
 
-  next()
+    next()
 })
 
-// handle outbound client requests
-app.post('/cors', async(req, res) => {
-  try {
-    const {url, method, data} =  req.body
 
+
+// handle outbound client requests
+app.post(`/cors`, wtc(async(req, res) => {
+    const {url, method, data} =  req.body
     if (!url || !method) {
-      return res.status(400).send(`
+        return res.status(400).send(`
                 missing fields, must contain url, method and optional data field
             `)
     }
 
     const query_conf = {
-      url, method
+        url, method
     }
     if (data) {
-      query_conf['data'] = data
+        query_conf['data'] = data
     }
 
     const query_res = await axios(query_conf)
     res.status(200).send({query_data: query_res.data, query_status: query_res.status})
-  } catch(e) {
-    console.log("ERROR: ", e)
-    res.status(500).send()
-  }
-})
+}))
+
 
 
 
 /* USERS SECTION */
 app.post(`/users`, user_create_conditionally_async)
+
 
 /* QUESTIONS SECTION */
 app.post(`/questions`, question_create_async)
@@ -81,6 +78,9 @@ app.get(`/already_voted_questions/:question_id/:user_id/:vote_flag`, (req, res) 
 app.get(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `question`))
 app.delete(`/already_voted_questions/:question_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `question`))
 
+
+
+
 /* QUESTION COMMENTS */
 app.post(`/question_comments/:question_id`, comment_create_async)
 app.get(`/question_comments/:question_id`, comment_get_async)
@@ -92,6 +92,10 @@ app.get(`/decrement_vote/question_comments/:comment_id`, (req, res) => increment
 app.get(`/already_voted_question_comments/:comment_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `question_comment`))
 app.get(`/already_voted_question_comments/:comment_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `question_comment`))
 app.delete(`/already_voted_question_comments/:comment_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `question_comment`))
+
+
+
+
 
 /* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
@@ -106,5 +110,73 @@ app.get(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_vote
 app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `answer`))
 
 
-app.listen(port, () => console.log(`listening on ${port}`))
+
+
+
+
+class WSClient {
+    constructor({username, ip, socket}) {
+        if (!ip || !socket)
+            throw `missing fields in the object passed to new WSClient()`
+
+        this.username = username
+        this.ip = ip 
+        this.socket = socket
+    }
+}
+
+const server = app.listen(port, () => console.log(`listening on ${port}`))
+const soc_serv = new WebSocketServer({ noServer: true })
+const clients = []
+
+/* websocket */
+server.on(`upgrade`, (req, original_socket, head) => {
+    const {pathname, query:{username}} = parse(req.url,true)
+
+    if (pathname !== `/websocket`) {
+        original_socket.destroy()
+    } else {
+        soc_serv.handleUpgrade(
+            req, 
+            original_socket, 
+            head, 
+            upgraded_socket => handle_upgraded_socket(req, upgraded_socket)
+        )
+    }
+})
+
+const handle_upgraded_socket = wtc((req, ws) => {
+    // check if the username exists, 
+    // reuse if yes, create if not
+    const {pathname, query:{username}} = parse(req.url,true)
+
+    let client = clients.find(cl => cl.username === username)
+    if (!client) {
+        client = new WSClient({
+            username,
+            ip: req.socket.remoteAddress,
+            socket: ws
+        })
+
+        clients.push(client)
+    }
+
+    console.dir(clients, {depth: 1})
+
+    ws.send(`hello from the server side`)
+    ws.on(`message`, msg => console.log(msg.toString()))
+})
+
+
+
+// [*] create a client pool
+// [] create a new user, post a question
+// [] check if the first user got updated
+
+
+
+
+
+
+
 
