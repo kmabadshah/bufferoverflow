@@ -22,7 +22,7 @@ export default function Home() {
     const [loading, set_loading] = React.useState(true)
     const {extras: {random_error, fetched_all_questions}, users: {current_user}, questions} = useSelector(store => store)
 
-    React.useEffect(() => { wtc(async () => {
+    React.useEffect(() => wtc(async () => {
         if (!current_user && localStorage.getItem('github_api_token')) {
             const user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
             const {data} = await axios.post(`${backend_url}/users`, user_data)
@@ -36,10 +36,10 @@ export default function Home() {
         }
         set_loading(false)
 
-    })(() => dispatch(extras_actions.random_error_on())) }, [])
+    })(() => dispatch(extras_actions.random_error_on())), [])
 
 
-    React.useEffect(() => { wtc(async() => {
+    React.useEffect(() => wtc(async() => {
         if (current_user) {
             const ws = new WebSocket(`ws://localhost:8000/websocket?username=${current_user.username}`)
             ws.addEventListener('error', (e) => {
@@ -49,7 +49,7 @@ export default function Home() {
                 console.log(`connected`)
             })
         }
-    })(() => dispatch(extras_actions.random_error_on())) }, [current_user])
+    })(() => dispatch(extras_actions.random_error_on())), [current_user])
 
 
 

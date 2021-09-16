@@ -47,7 +47,7 @@ export default function QuestionComment({comment_data}) {
 
     React.useEffect(() => wtc(async() => {
         // fetch comment_owner_data
-        const res = await axios.post(`${backend_url}/users`, {user_id: comment_owner_data.user_id})
+        const res = await axios.post(`${backend_url}/users`, {user_id: comment_data.user_id})
         if (res.status !== 200) throw res
         dispatch(users_actions.update(res.data))
 

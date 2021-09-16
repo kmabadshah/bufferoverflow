@@ -25,8 +25,6 @@
 [] TODO: questions, answers, comments deletable by their owners
 [] TODO: upgrade to HTTPS and WSS
 
-* checkout Github CI
-
 * Whenever a client does a PUT, DELETE or POST, the server notifies
   all clients who are online.
 
