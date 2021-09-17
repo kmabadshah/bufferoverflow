@@ -11,6 +11,26 @@ import {users_actions, extras_actions} from './index.js'
 import { Switch, Route, BrowserRouter as Router, useHistory } from 'react-router-dom';
 
 export default function App() {
+
+    React.useEffect(() => wtc(async() => {
+        const ws = new WebSocket(`ws://localhost:8000/websocket`)
+        ws.addEventListener('error', (e) => { console.log(e) })
+        ws.addEventListener('open', (e) => { console.log(`connected`) })
+        ws.addEventListener('close', e => console.log(`CLOSED`, e.data))
+        ws.addEventListener(`message`, wtc(e => {
+            let msg_obj
+            msg_obj = JSON.parse(e.data)
+
+            console.log(msg_obj)
+            ws.send(JSON.stringify({ ...msg_obj, signal: `ack` }))
+        }))
+
+    })(), [])
+    // })(() => dispatch(extras_actions.random_error_on())), [])
+
+
+
+
     if (window.location.pathname === '/oauth_consent') {
         const string_before_api_token = window.location.href
         localStorage.setItem('string_before_api_token', string_before_api_token)
@@ -18,6 +38,9 @@ export default function App() {
         window.close()
         return <NotFound/>
     }
+
+
+
 
     return <Router>
         <Switch>

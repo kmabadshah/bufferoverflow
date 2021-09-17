@@ -22,6 +22,9 @@ export default function Home() {
     const [loading, set_loading] = React.useState(true)
     const {extras: {random_error, fetched_all_questions}, users: {current_user}, questions} = useSelector(store => store)
 
+
+
+
     React.useEffect(() => wtc(async () => {
         if (!current_user && localStorage.getItem('github_api_token')) {
             const user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
@@ -39,17 +42,6 @@ export default function Home() {
     })(() => dispatch(extras_actions.random_error_on())), [])
 
 
-    React.useEffect(() => wtc(async() => {
-        if (current_user) {
-            const ws = new WebSocket(`ws://localhost:8000/websocket?username=${current_user.username}`)
-            ws.addEventListener('error', (e) => {
-                console.log(e)
-            })
-            ws.addEventListener('open', (e) => {
-                console.log(`connected`)
-            })
-        }
-    })(() => dispatch(extras_actions.random_error_on())), [current_user])
 
 
 
@@ -88,9 +80,7 @@ export default function Home() {
 
 
     if (loading) return `loading...`
-
     else if (random_error) return `something went wrong, please try refreshing the page`
-
     else return (
         <div className={`flex flex-col h-screen container mx-auto`}>
             {/* row-1 */}

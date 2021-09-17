@@ -64,7 +64,7 @@ export default function Question() {
 
     React.useEffect(() => { wtc(async() => {
         // logged in but not fetched
-        if (current_user && !vote_flag) {
+        if (current_user && question_data && !vote_flag) {
             let res = await axios.get(
                 `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
                 {validateStatus: (status) => status < 500}
@@ -77,6 +77,10 @@ export default function Question() {
         }
     })(() => dispatch(extras_actions.random_error_on())) }
         ,[current_user])
+
+
+
+
 
 
     React.useEffect(() => { wtc(async () => {

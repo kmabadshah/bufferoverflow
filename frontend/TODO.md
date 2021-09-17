@@ -40,10 +40,9 @@
     ...
   ] 
 
-
 * messaging protocol: JSON
   {
-    event: ok|error,
+    signal: syn|ack|fin,
     message: `PUT already_voted_questions`
   }
 

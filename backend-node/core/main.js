@@ -3,7 +3,7 @@ import axios from 'axios'
 import pg_promise from 'pg-promise'
 import {user_create_conditionally_async} from './route_methods/users.js'
 import {question_create_async, question_update_async, question_get_async, question_get_all_async} from './route_methods/questions.js'
-import {increment_or_decrement_table_vote_async, wtc} from './route_methods/shared.js'
+import {increment_or_decrement_table_vote_async, wtc, Message} from './route_methods/shared.js'
 import {answer_create_async, answer_update_async, answer_get_async} from './route_methods/answers.js'
 import {comment_create_async, comment_get_async, comment_update_async} from './route_methods/comments.js'
 import {parse} from 'url'
@@ -114,26 +114,58 @@ app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_v
 
 
 
-class WSClient {
-    constructor({username, ip, socket}) {
-        if (!ip || !socket)
-            throw `missing fields in the object passed to new WSClient()`
 
-        this.username = username
-        this.ip = ip 
-        this.socket = socket
-    }
-}
 
-const server = app.listen(port, () => console.log(`listening on ${port}`))
-const soc_serv = new WebSocketServer({ noServer: true })
-const clients = []
 
-/* websocket */
-server.on(`upgrade`, (req, original_socket, head) => {
+
+
+
+// [*] create a client pool
+// [] create a new user, post a question
+// [] check if the first user got updated
+export const sockets = []
+let counter = 0;
+const handle_upgraded_socket = wtc((req, ws) => {
+    const index = counter
+    counter++;
     const {pathname, query:{username}} = parse(req.url,true)
 
-    if (pathname !== `/websocket`) {
+    sockets.push(ws)
+
+    ws.on(`close`, wtc(() => {
+        // doesn't modify the length of the array, just empties the slot
+        // this is intentional
+        delete sockets[index]
+    }))
+
+    ws.on(`message`, (msg) => {
+        try {
+            let message = new Message(JSON.parse(msg.toString()))
+            if (message.signal === `ack`) 
+                ws.latest_message_from_client = message
+
+        } catch(e) {
+            const message = new Message({
+                signal: `fin`,
+                message: `MALFORMED data`
+            })
+            ws.send(JSON.stringify(message))
+            ws.terminate()
+        }
+    })
+
+})
+
+
+
+
+
+
+const server = app.listen(port, () => console.log(`listening on ${port}`))
+const soc_serv = new WebSocketServer({ noServer: true, maxPayload: 100 })
+
+server.on(`upgrade`, (req, original_socket, head) => {
+    if (parse(req.url,true).pathname !== `/websocket`) {
         original_socket.destroy()
     } else {
         soc_serv.handleUpgrade(
@@ -145,33 +177,8 @@ server.on(`upgrade`, (req, original_socket, head) => {
     }
 })
 
-const handle_upgraded_socket = wtc((req, ws) => {
-    // check if the username exists, 
-    // reuse if yes, create if not
-    const {pathname, query:{username}} = parse(req.url,true)
-
-    let client = clients.find(cl => cl.username === username)
-    if (!client) {
-        client = new WSClient({
-            username,
-            ip: req.socket.remoteAddress,
-            socket: ws
-        })
-
-        clients.push(client)
-    }
-
-    console.dir(clients, {depth: 1})
-
-    ws.send(`hello from the server side`)
-    ws.on(`message`, msg => console.log(msg.toString()))
-})
 
 
-
-// [*] create a client pool
-// [] create a new user, post a question
-// [] check if the first user got updated
 
 
 
