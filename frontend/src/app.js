@@ -7,21 +7,26 @@ import NotFound from './components/not_found'
 import {wtc, get_user_info_async, backend_url, new_user_obj} from './components/utilities'
 import axios from 'axios'
 import {useDispatch, useSelector} from 'react-redux'
-import {users_actions, extras_actions} from './index.js'
+import {users_actions, extras_actions, questions_actions} from './index.js'
 import { Switch, Route, BrowserRouter as Router, useHistory } from 'react-router-dom';
 
 export default function App() {
+    const dispatch = useDispatch()
 
     React.useEffect(() => wtc(async() => {
         const ws = new WebSocket(`ws://localhost:8000/websocket`)
         ws.addEventListener('error', (e) => { console.log(e) })
         ws.addEventListener('open', (e) => { console.log(`connected`) })
         ws.addEventListener('close', e => console.log(`CLOSED`, e.data))
-        ws.addEventListener(`message`, wtc(e => {
-            let msg_obj
-            msg_obj = JSON.parse(e.data)
+        ws.addEventListener(`message`, wtc(async e => {
+            const msg_obj = JSON.parse(e.data)
 
-            console.log(msg_obj)
+            if (msg_obj.action === `CREATED` && msg_obj.table === `questions`) {
+                // update the questions list
+                const res = await axios.get(`${backend_url}/questions`)
+                dispatch(questions_actions.set(res.data))
+            }
+
             ws.send(JSON.stringify({ ...msg_obj, signal: `ack` }))
         }))
 

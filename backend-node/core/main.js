@@ -126,12 +126,8 @@ app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_v
 export const sockets = []
 let counter = 0;
 const handle_upgraded_socket = wtc((req, ws) => {
-    const index = counter
-    counter++;
-    const {pathname, query:{username}} = parse(req.url,true)
-
+    const index = counter++;
     sockets.push(ws)
-
     ws.on(`close`, wtc(() => {
         // doesn't modify the length of the array, just empties the slot
         // this is intentional
@@ -154,6 +150,7 @@ const handle_upgraded_socket = wtc((req, ws) => {
         }
     })
 
+    console.dir(sockets, {depth: 1})
 })
 
 

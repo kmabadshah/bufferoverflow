@@ -26,6 +26,8 @@ import {useSelector, useDispatch} from 'react-redux'
  */
 
 // TODO: fetch question owner info
+//
+const already_rendered_instances = []
 export default function Question() {
     const
     [loading, set_loading] = React.useState(true),
@@ -49,11 +51,11 @@ export default function Question() {
     })) || {
         question_id: question_id,
         user_id: current_user && current_user.user_id,
-        vote_flag: null
+        vote_flag: undefined
     },
     vote_flag = already_voted_question.vote_flag,
     question_owner_data = useSelector(store => {
-        return store.users.list.find(u => u.user_id === question_data.user_id) 
+        return store.users.list.find(u => u.user_id === (question_data && question_data.user_id))
     }) || {};
 
 
@@ -62,40 +64,55 @@ export default function Question() {
 
 
 
-    React.useEffect(() => { wtc(async() => {
-        // logged in but not fetched
-        if (current_user && question_data && !vote_flag) {
-            let res = await axios.get(
-                `${backend_url}/already_voted_questions/${question_data.question_id}/${current_user.user_id}`,
-                {validateStatus: (status) => status < 500}
-            )
-            if (res.status === 200)
-                dispatch(already_voted_questions_actions.update({
-                    ...already_voted_question,
-                    vote_flag: res.data.vote_flag,
-                }))
-        }
-    })(() => dispatch(extras_actions.random_error_on())) }
-        ,[current_user])
-
-
-
 
 
 
     React.useEffect(() => { wtc(async () => {
-        let res;
-        if (!question_data) {
-            // fetch the question with question_id
-            res = await axios.get(`${backend_url}/questions/${question_id}`)
-            if (res.status !== 200) throw res
-            dispatch(questions_actions.add(res.data))
-            const {user_id:question_owner_user_id} = res.data
+        // register the instance if not exists,
+        // and run the initialization code
+        if (!already_rendered_instances.find(qid => qid === question_id)) {
+            already_rendered_instances.push(question_id);
+            let res, question_owner_user_id, current_user_F = current_user;
+
+            if (!current_user_F && localStorage.getItem('github_api_token')) {
+                let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
+                res = await axios.post(`${backend_url}/users`, user_data)
+                dispatch(users_actions.set_current_user(new_user_obj(res.data)))
+                current_user_F = res.data
+            }
+
+            if (!question_data) {
+                // fetch the question with question_id
+                res = await axios.get(`${backend_url}/questions/${question_id}`)
+                if (res.status !== 200) throw res
+                dispatch(questions_actions.add(res.data))
+                question_owner_user_id = res.data.user_id
+
+            } else {
+                question_owner_user_id = question_data.user_id
+            }
+
+
+            if (current_user_F) {
+                // question vote flag
+                res = await axios.get(
+                    `${backend_url}/already_voted_questions/${question_id}/${current_user_F.user_id}`,
+                    {validateStatus: (status) => status < 500}
+                )
+                if (res.status === 200)
+                    dispatch(already_voted_questions_actions.update({
+                        question_id: question_id,
+                        user_id: current_user_F.user_id,
+                        vote_flag: res.data.vote_flag,
+                    }))
+            }
+
 
             // fetch the question owner's info
             res = await axios.post(`${backend_url}/users`, { user_id: question_owner_user_id })
             if (res.status !== 200) throw res
             dispatch(users_actions.update(res.data))
+
 
             // get question_comments
             res = await axios.get(`${backend_url}/question_comments/${question_id}`)
@@ -106,28 +123,9 @@ export default function Question() {
             res = await axios.get(`${backend_url}/answers/${question_id}`)
             if (res.status !== 200) throw res
             dispatch(answers_actions.add(res.data))
+        } 
 
-        } else {
-            if (!comments || comments.length === 0) {
-                // get question comments
-                res = await axios.get(`${backend_url}/question_comments/${question_id}`)
-                if (res.status !== 200) throw res
-                dispatch(question_comments_actions.add(res.data))
-            }
 
-            if (!answers || answers.length === 0) {
-                // get the answers related to question
-                res = await axios.get(`${backend_url}/answers/${question_id}`)
-                if (res.status !== 200) throw res
-                dispatch(answers_actions.add(res.data))
-            }
-        }
-
-        if (!current_user && localStorage.getItem('github_api_token')) {
-            let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
-            res = await axios.post(`${backend_url}/users`, user_data)
-            dispatch(users_actions.set_current_user(new_user_obj(res.data)))
-        }
 
         set_loading(false)
 

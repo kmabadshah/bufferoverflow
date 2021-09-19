@@ -19,6 +19,9 @@
 [*] TODO: replace mock qustion|answer|comment username with real data
 [*] TODO: only authorized users should be able to edit questions,answers,comments
 
+[*] TODO: test notification multiple clients
+[*] TODO: update questions list upon receiving event
+[] TODO: update question answer upon receiving event
 [] TODO: implement the notification system
 [] TODO: implement answer comments
 [] TODO: implement the user profile page

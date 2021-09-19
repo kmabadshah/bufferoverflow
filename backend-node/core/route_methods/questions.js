@@ -82,9 +82,9 @@ export async function question_create_async(req, res) {
             ) clearInterval(int_val)
 
             else {
-                if (sc) // not closed
+                if (sc.status !== `closed`)
                     sc.send(JSON.stringify(message))
-                else // closed
+                else
                     clearInterval(int_val)
             }
         }, 1000 * 10)

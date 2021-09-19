@@ -79,6 +79,8 @@ export default function Home() {
     }
 
 
+
+
     if (loading) return `loading...`
     else if (random_error) return `something went wrong, please try refreshing the page`
     else return (
