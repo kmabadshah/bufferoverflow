@@ -4,6 +4,7 @@ import React from 'react';
 import {Link, useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions} from '../index.js'
+import PropTypes from 'prop-types'
 
 export const backend_url = 'http://localhost:8000'
 const github_client_id = "24bf0d137961d6038ffb"
@@ -197,6 +198,9 @@ export const get_user_info_async = wtc(async (token_promise) => {
 })
 
 
+Br.propTypes = {
+    height: PropTypes.number
+}
 export function Br({height}) {
     return (
         <div style={{flexBasis: `100%`, height: `${height || 0}px`}}></div>

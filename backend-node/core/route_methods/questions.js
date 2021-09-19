@@ -65,7 +65,7 @@ export async function question_create_async(req, res) {
     sockets.forEach(wtc(sc => {
         const message = new Message({
             signal: `syn`,
-            action: `CREATED`,
+            action: `CHANGED`,
             table: `questions`
         })
         sc.send(JSON.stringify(message))
@@ -75,17 +75,16 @@ export async function question_create_async(req, res) {
             // if no ack after 10 seconds, resend
             const latest_message_from_client = sc.latest_message_from_client || {}
             if (
-                latest_message_from_client.signal === `ack` 
+                (latest_message_from_client.signal === `ack` 
                 && latest_message_from_client.action === message.action
-                && latest_message_from_client.table === message.table
+                && latest_message_from_client.table === message.table)
+
+                || sc.status === `closed`
 
             ) clearInterval(int_val)
 
             else {
-                if (sc.status !== `closed`)
-                    sc.send(JSON.stringify(message))
-                else
-                    clearInterval(int_val)
+                sc.send(JSON.stringify(message))
             }
         }, 1000 * 10)
     }))

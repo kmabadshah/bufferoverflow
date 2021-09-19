@@ -124,14 +124,12 @@ app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_v
 // [] create a new user, post a question
 // [] check if the first user got updated
 export const sockets = []
-let counter = 0;
 const handle_upgraded_socket = wtc((req, ws) => {
-    const index = counter++;
     sockets.push(ws)
+    ws.status = `open`
+
     ws.on(`close`, wtc(() => {
-        // doesn't modify the length of the array, just empties the slot
-        // this is intentional
-        delete sockets[index]
+        ws.status = `closed`
     }))
 
     ws.on(`message`, (msg) => {

@@ -3,7 +3,12 @@ import axios from 'axios'
 import {backend_url, Navbar, new_answer_obj, Br, wtc} from './utilities'
 import {extras_actions, question_comments_actions, users_actions, already_voted_question_comments_actions} from '../index.js'
 import {useSelector, useDispatch} from 'react-redux'
+import PropTypes from 'prop-types'
 
+
+QuestionComment.propTypes = {
+    comment_data: PropTypes.object
+}
 export default function QuestionComment({comment_data}) {
     const 
     [loading, set_loading] = React.useState(true),

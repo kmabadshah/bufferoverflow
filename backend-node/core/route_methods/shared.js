@@ -94,9 +94,7 @@ export class Message {
             `already_voted_answer_comments`
         ]
         const actions_enum = [
-            `UPDATED`,
-            `DELETED`,
-            `CREATED`,
+            `CHANGED`
         ]
 
         if (!signals_enum.includes(signal)) 

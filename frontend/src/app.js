@@ -21,7 +21,7 @@ export default function App() {
         ws.addEventListener(`message`, wtc(async e => {
             const msg_obj = JSON.parse(e.data)
 
-            if (msg_obj.action === `CREATED` && msg_obj.table === `questions`) {
+            if (msg_obj.action === `CHANGED` && msg_obj.table === `questions`) {
                 // update the questions list
                 const res = await axios.get(`${backend_url}/questions`)
                 dispatch(questions_actions.set(res.data))

@@ -3,8 +3,12 @@ import axios from 'axios'
 import {backend_url, Br, wtc} from './utilities'
 import {useSelector, useDispatch} from 'react-redux'
 import {useHistory} from 'react-router-dom'
+import PropTypes from 'prop-types'
 import {extras_actions, users_actions, already_voted_answers_actions, answers_actions} from '../index.js'
 
+Answer.propTypes = {
+    answer_data: PropTypes.object
+}
 export default function Answer({answer_data}) {
     const
     [loading, set_loading] = React.useState(true),

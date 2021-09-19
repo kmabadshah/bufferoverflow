@@ -59,9 +59,7 @@ export default function Question() {
     }) || {};
 
 
-
-
-
+    
 
 
 
@@ -106,7 +104,6 @@ export default function Question() {
                         vote_flag: res.data.vote_flag,
                     }))
             }
-
 
             // fetch the question owner's info
             res = await axios.post(`${backend_url}/users`, { user_id: question_owner_user_id })
