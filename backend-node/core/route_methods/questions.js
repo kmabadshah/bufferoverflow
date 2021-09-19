@@ -1,7 +1,7 @@
 import {db, sockets} from '../main.js'
-import {Message, wtc} from './shared.js'
+import {Message, wtc, error_log, notify_active_clients} from './shared.js'
 
-export async function question_create_async(req, res) {
+export async function question_create_async(req, res) { try {
     /*
      *
      * create a question if not exists,
@@ -60,35 +60,15 @@ export async function question_create_async(req, res) {
 
 
 
+    notify_active_clients(new Message({
+        signal: `syn`,
+        table: `questions`
+    })
+)
 
-    // notify all active clients
-    sockets.forEach(wtc(sc => {
-        const message = new Message({
-            signal: `syn`,
-            action: `CHANGED`,
-            table: `questions`
-        })
-        sc.send(JSON.stringify(message))
 
-        const int_val = setInterval(() => {
-            // wait for `ack` signal
-            // if no ack after 10 seconds, resend
-            const latest_message_from_client = sc.latest_message_from_client || {}
-            if (
-                (latest_message_from_client.signal === `ack` 
-                && latest_message_from_client.action === message.action
-                && latest_message_from_client.table === message.table)
+} catch(e) {error_log(e, res)} } 
 
-                || sc.status === `closed`
-
-            ) clearInterval(int_val)
-
-            else {
-                sc.send(JSON.stringify(message))
-            }
-        }, 1000 * 10)
-    }))
-}
 
 
 

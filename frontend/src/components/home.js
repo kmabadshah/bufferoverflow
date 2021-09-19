@@ -1,9 +1,8 @@
 import React from 'react';
-import {backend_url, wtc} from './utilities'
+import {backend_url, wtc, Navbar, get_user_info_async, new_user_obj, error_log} from './utilities'
 import {useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions, questions_actions} from '../index.js'
-import {Navbar, get_user_info_async, new_user_obj} from './utilities'
 import axios from 'axios'
 
 /*
@@ -16,7 +15,7 @@ import axios from 'axios'
  * row-3: column with all questions
  *
  * */
-export default function Home() {
+export default function Home({ws}) {
     const dispatch = useDispatch()
     const history = useHistory()
     const [loading, set_loading] = React.useState(true)
@@ -25,7 +24,23 @@ export default function Home() {
 
 
 
-    React.useEffect(() => wtc(async () => {
+    React.useEffect(() => (async() => { try {
+        const listener = async(e) => { try {
+            const {table} = JSON.parse(e.data)
+
+            console.log(JSON.parse(e.data))
+            if (table === `questions`) {
+                const res = await axios.get(`${backend_url}/questions`)
+                if (res.status !== 200)
+                    throw res
+
+                dispatch(questions_actions.set(res.data))
+                ws.send(JSON.stringify({table, signal: `ack`}))
+            }
+        } catch(e) {error_log(e)} }
+
+        ws.addEventListener(`message`, listener)
+
         if (!current_user && localStorage.getItem('github_api_token')) {
             const user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
             const {data} = await axios.post(`${backend_url}/users`, user_data)
@@ -34,12 +49,19 @@ export default function Home() {
 
         if (!fetched_all_questions) {
             const res = await axios.get(`${backend_url}/questions`)
+            if (res.status !== 200)
+                throw res
+
             dispatch(questions_actions.set(res.data))
             dispatch(extras_actions.fetched_all_questions_on())
         }
         set_loading(false)
 
-    })(() => dispatch(extras_actions.random_error_on())), [])
+        return () => ws.removeEventListener(ws, listener)
+
+    } catch(e) {error_log(e)} })(), [])
+
+
 
 
 

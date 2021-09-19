@@ -4,7 +4,7 @@ import User from './components/user'
 import Question from './components/question'
 import AskQuestion from './components/ask_question'
 import NotFound from './components/not_found'
-import {wtc, get_user_info_async, backend_url, new_user_obj} from './components/utilities'
+import {wtc, get_user_info_async, backend_url, new_user_obj, error_log} from './components/utilities'
 import axios from 'axios'
 import {useDispatch, useSelector} from 'react-redux'
 import {users_actions, extras_actions, questions_actions} from './index.js'
@@ -12,26 +12,19 @@ import { Switch, Route, BrowserRouter as Router, useHistory } from 'react-router
 
 export default function App() {
     const dispatch = useDispatch()
+    const [ws, set_ws] = React.useState(null)
+    const [loading, set_loading] = React.useState(true)
 
-    React.useEffect(() => wtc(async() => {
-        const ws = new WebSocket(`ws://localhost:8000/websocket`)
-        ws.addEventListener('error', (e) => { console.log(e) })
-        ws.addEventListener('open', (e) => { console.log(`connected`) })
-        ws.addEventListener('close', e => console.log(`CLOSED`, e.data))
-        ws.addEventListener(`message`, wtc(async e => {
-            const msg_obj = JSON.parse(e.data)
+    React.useLayoutEffect(() => { try {
+        const ws_F = new WebSocket(`ws://localhost:8000/websocket`)
+        ws_F.addEventListener('error', (e) => { error_log(e) })
+        ws_F.addEventListener('open', (e) => { console.log(`connected`) })
+        ws_F.addEventListener('close', e => console.log(`CLOSED`, e.data))
 
-            if (msg_obj.action === `CHANGED` && msg_obj.table === `questions`) {
-                // update the questions list
-                const res = await axios.get(`${backend_url}/questions`)
-                dispatch(questions_actions.set(res.data))
-            }
+        set_ws(ws_F)
+        set_loading(false)
 
-            ws.send(JSON.stringify({ ...msg_obj, signal: `ack` }))
-        }))
-
-    })(), [])
-    // })(() => dispatch(extras_actions.random_error_on())), [])
+    } catch(e) {error_log(e)}}, [])
 
 
 
@@ -44,12 +37,11 @@ export default function App() {
         return <NotFound/>
     }
 
+    if (loading) return `loading....`
 
-
-
-    return <Router>
+    else return <Router>
         <Switch>
-            <Route exact path={`/`}> <Home/> </Route>
+            <Route exact path={`/`}> <Home ws={ws}/> </Route>
             <Route path={`/users/:user_id`}> <User /> </Route>
             <Route path={`/ask_question`}> <AskQuestion /> </Route>
             <Route path={`/questions/:question_id`}> <Question /> </Route>

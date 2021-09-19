@@ -7,7 +7,7 @@ import PropTypes from 'prop-types'
 
 
 QuestionComment.propTypes = {
-    comment_data: PropTypes.object
+    comment_data: PropTypes.object.isRequired
 }
 export default function QuestionComment({comment_data}) {
     const 

@@ -67,6 +67,17 @@ export function wtc(f) {
 
 
 
+export function error_log(e) {
+    console.log(`-------------ERROR_BEGIN---------`)
+    console.dir(e)
+    console.trace(e)
+    console.log(`-------------ERROR_END---------`)
+}
+
+
+
+
+
 /* sort based on 1)_vote_count and 2)_timestamp(low->high ascending) */
 export const sort_by_vote_count_and_timestamp = wtc((a, b) => {
     // sort by vote count, highest first

@@ -96,7 +96,6 @@ app.delete(`/already_voted_question_comments/:comment_id/:user_id`, (req, res) =
 
 
 
-
 /* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
 app.get(`/answers/:question_id`, answer_get_async)
@@ -120,25 +119,23 @@ app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_v
 
 
 
-// [*] create a client pool
-// [] create a new user, post a question
-// [] check if the first user got updated
 export const sockets = []
+
 const handle_upgraded_socket = wtc((req, ws) => {
     sockets.push(ws)
     ws.status = `open`
 
     ws.on(`close`, wtc(() => {
         ws.status = `closed`
+        ws.terminate()
     }))
 
-    ws.on(`message`, (msg) => {
-        try {
-            let message = new Message(JSON.parse(msg.toString()))
-            if (message.signal === `ack`) 
-                ws.latest_message_from_client = message
+    ws.on(`message`, (msg) => { try {
+        let message = new Message(JSON.parse(msg.toString()))
+        if (message.signal === `ack`) 
+            ws.latest_message_from_client = message } 
 
-        } catch(e) {
+        catch(e) {
             const message = new Message({
                 signal: `fin`,
                 message: `MALFORMED data`

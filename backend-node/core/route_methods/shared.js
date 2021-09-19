@@ -1,4 +1,4 @@
-import {db} from '../main.js'
+import {db, sockets} from '../main.js'
 
 /*
  *
@@ -41,11 +41,8 @@ export function wtc(f) {
     }
 
     return function() {
-        try {
-            return f.apply(this, arguments)
-        }
-        catch(e)
-        {
+        try { return f.apply(this, arguments) }
+        catch(e) {
             console.log(`-------------ERROR_BEGIN---------`)
             console.dir(e)
             console.trace(e)
@@ -66,6 +63,57 @@ export function wtc(f) {
 
 
 
+
+
+
+/* utility function for error handling, optionally send 500 response as well */
+export function error_log(e, res) {
+    console.log(`-------------ERROR_BEGIN---------`)
+    console.dir(e)
+    console.trace(e)
+    console.log(`-------------ERROR_END---------`)
+
+    if (res && res.constructor.name === `ServerResponse`)
+            res.status(500).send()
+}
+
+
+
+
+
+/* utility function to quickly notify all active clients about MESSAGE */
+export function notify_active_clients(message) {
+    if (message.constructor.name !== `Message`) 
+        throw `invalid arugment type`
+
+    sockets.forEach(sc => { if (sc.status !== `open`) return;
+        sc.send(JSON.stringify(message))
+
+        const int_val = setInterval(() => {
+            // wait for `ack` signal
+            // if no ack after 10 seconds, resend
+            const latest_message_from_client = sc.latest_message_from_client || {}
+            if (
+                (latest_message_from_client.signal === `ack` 
+                    && latest_message_from_client.action === message.action
+                    && latest_message_from_client.table === message.table)
+                || sc.status === `closed`
+
+            ) clearInterval(int_val)
+
+            else sc.send(JSON.stringify(message))
+
+        }, 1000 * 10) 
+    }) 
+}
+
+
+
+
+
+
+
+
 /* 
  * implementation for building websocket messages 
  * EXAMPLE:
@@ -76,42 +124,26 @@ export function wtc(f) {
  *  }
  * */
 export class Message {
-    constructor({signal, action, table}) {
-        if (!signal) {
-            throw `missing  fields in the object passed to new Message()`
-        }
-
+    constructor({signal, table}) {
         const signals_enum = [`syn`, `ack`, `fin`]
-        const table_names_enum = [
-            `questions`, 
-            `already_voted_questions`,
-            `question_comments`, 
-            `already_voted_question_comments`, 
-
-            `answers`, 
-            `already_voted_answers`,
-            `answer_comments`, 
-            `already_voted_answer_comments`
-        ]
-        const actions_enum = [
-            `CHANGED`
-        ]
 
         if (!signals_enum.includes(signal)) 
             throw `invalid signal`
+        if (!table)
+            throw `missing parameter: table`
 
-        if (action && !table) throw `missing field table`
-        if (table && !action) throw `missing field action`
-        if (action && table && !table_names_enum.includes(table))
-            throw `invalid table name: ${table}`
-        if (action && table && !actions_enum.includes(action))
-            throw `invalid action name: ${action}`
-
-        this.action = action
-        this.table = table
         this.signal = signal
+        this.table = table
     }
 }
+
+
+
+
+
+
+
+
 
 
 

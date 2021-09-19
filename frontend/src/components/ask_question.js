@@ -38,7 +38,12 @@ export default function AskQuestion() {
         set_loading(false)
     })(() => dispatch(extras_actions.random_error_on())), [])
 
+
+
+
+
     
+
     const handle_submit = wtc(async (e) => {
         e.preventDefault()
 
@@ -58,9 +63,16 @@ export default function AskQuestion() {
         const res = await axios.post(`${backend_url}/questions`, question_obj)
         if (res.status !== 200)
             return
-        question_obj = res.data
-        history.push(`questions/${question_obj.question_id}`)
+
+        dispatch(questions_actions.add(res.data))
+        history.push(`questions/${res.data.question_id}`)
     })
+
+
+
+
+
+
 
     if (loading) return `loading...`
     else if (random_error) return `something went wrong, please try refreshing the page`

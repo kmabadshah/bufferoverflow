@@ -7,7 +7,7 @@ import PropTypes from 'prop-types'
 import {extras_actions, users_actions, already_voted_answers_actions, answers_actions} from '../index.js'
 
 Answer.propTypes = {
-    answer_data: PropTypes.object
+    answer_data: PropTypes.object.isRequired
 }
 export default function Answer({answer_data}) {
     const
@@ -53,6 +53,7 @@ export default function Answer({answer_data}) {
 
 
 
+
     React.useEffect(() => { wtc(async () => {
         // if no answer_owner_data, fetch
         if (Object.keys(answer_owner_data).length === 0) {
@@ -67,6 +68,8 @@ export default function Answer({answer_data}) {
 
     })(() => dispatch(extras_actions.random_error_on())) }
         ,[])
+
+
 
 
 
@@ -150,6 +153,7 @@ export default function Answer({answer_data}) {
             }))
         }
     })
+
 
 
 
