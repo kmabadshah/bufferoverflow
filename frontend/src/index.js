@@ -107,7 +107,7 @@ reducers: {
 export const {reducer: users_reducer, actions: users_actions} = createSlice({
 name: 'users',
 initialState: {
-    current_user: null,
+    current_user: undefined,
     list: []
 },
 reducers: {
@@ -226,13 +226,34 @@ export const {reducer: answers_reducer, actions: answers_actions} = createSlice(
 
         // expecting payload to be a full answer object
         update: (state, {payload}) => {
-            return state.map(q => {
+            if (payload.constructor.name === `Array`) {
+                const new_state = [...state]
+
+                for (const i1 in payload) {
+                    let found;
+                    for (const i2 in state) {
+                        if (payload[i1].answer_id === state[i2].answer_id) {
+                            new_state[i2] = payload[i1]
+                            found = true
+                        }
+                    }
+
+                    if (!found) {
+                        new_state.push(payload[i1])
+                    }
+                }
+
+                return new_state
+            }
+
+            else return state.map(q => {
                 if (q.answer_id === payload.answer_id)
                     return payload
                 else
                     return q
             })
-        }
+        },
+
     }
 })
 

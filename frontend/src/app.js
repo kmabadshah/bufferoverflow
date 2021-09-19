@@ -10,18 +10,17 @@ import {useDispatch, useSelector} from 'react-redux'
 import {users_actions, extras_actions, questions_actions} from './index.js'
 import { Switch, Route, BrowserRouter as Router, useHistory } from 'react-router-dom';
 
+export let ws = null;
 export default function App() {
     const dispatch = useDispatch()
-    const [ws, set_ws] = React.useState(null)
     const [loading, set_loading] = React.useState(true)
 
     React.useLayoutEffect(() => { try {
-        const ws_F = new WebSocket(`ws://localhost:8000/websocket`)
-        ws_F.addEventListener('error', (e) => { error_log(e) })
-        ws_F.addEventListener('open', (e) => { console.log(`connected`) })
-        ws_F.addEventListener('close', e => console.log(`CLOSED`, e.data))
+        ws = new WebSocket(`ws://localhost:8000/websocket`)
+        ws.addEventListener('error', (e) => { error_log(e) })
+        ws.addEventListener('open', (e) => { console.log(`connected`) })
+        ws.addEventListener('close', e => console.log(`CLOSED`, e.data))
 
-        set_ws(ws_F)
         set_loading(false)
 
     } catch(e) {error_log(e)}}, [])
@@ -41,7 +40,7 @@ export default function App() {
 
     else return <Router>
         <Switch>
-            <Route exact path={`/`}> <Home ws={ws}/> </Route>
+            <Route exact path={`/`}> <Home /> </Route>
             <Route path={`/users/:user_id`}> <User /> </Route>
             <Route path={`/ask_question`}> <AskQuestion /> </Route>
             <Route path={`/questions/:question_id`}> <Question /> </Route>

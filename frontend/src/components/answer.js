@@ -1,10 +1,11 @@
 import React from 'react'
 import axios from 'axios'
-import {backend_url, Br, wtc} from './utilities'
+import {backend_url, Br, wtc, error_log} from './utilities'
 import {useSelector, useDispatch} from 'react-redux'
 import {useHistory} from 'react-router-dom'
 import PropTypes from 'prop-types'
-import {extras_actions, users_actions, already_voted_answers_actions, answers_actions} from '../index.js'
+import {extras_actions, users_actions, already_voted_answers_actions, answers_actions, questions_actions} from '../index.js'
+import {ws} from '../app.js'
 
 Answer.propTypes = {
     answer_data: PropTypes.object.isRequired
@@ -20,41 +21,43 @@ export default function Answer({answer_data}) {
     current_user = useSelector(store => store.users.current_user),
     random_error = useSelector(store => store.extras.random_error),
     already_voted_answer = useSelector(store => store.already_voted_answers.find(ava => {
-        return ava.answer_id === answer_data.answer_id
-            && ava.user_id === (current_user && current_user.user_id)
+        return ava.answer_id == answer_data.answer_id
+            && ava.user_id == (current_user && current_user.user_id)
     })) || {
         answer_id: answer_data.answer_id,
-        user_id: answer_data.user_id,
-        vote_flag: null
+        user_id: current_user && current_user.user_id,
+        vote_flag: undefined
     },
-    vote_flag = already_voted_answer && already_voted_answer.vote_flag,
+    vote_flag = already_voted_answer.vote_flag,
     answer_owner_data = useSelector(store => {
         return store.users.list.find(u => u.user_id === answer_data.user_id) 
     }) || {};
 
 
 
-    React.useEffect(() => { wtc(async() => {
-        // logged in but not fetched yet
-        if (current_user && !vote_flag) {
+
+
+
+
+    React.useEffect(() => (async() => { try {
+        // if current_user has been modified at this point, 
+        // it's value will be either null or an object
+        if (current_user !== null) {
+            // fetch vote flag, if any
             const res = await axios.get(`
                   ${backend_url}/already_voted_answers/${answer_data.answer_id}/${current_user.user_id}
                 `, {validateStatus: (status) => status < 500})
             if (res.status === 200) {
                 dispatch(already_voted_answers_actions.update({
-                    answer_id: answer_data.answer_id, user_id: answer_data.user_id,
+                    answer_id: answer_data.answer_id, 
+                    user_id: current_user.user_id,
                     vote_flag: res.data.vote_flag
                 }))
-            }
+
+            } else if (res.status !== 204)
+                throw res
         }
-    })(() => dispatch(extras_actions.random_error_on())) }
-        ,[current_user])
-
-
-
-
-
-    React.useEffect(() => { wtc(async () => {
+        
         // if no answer_owner_data, fetch
         if (Object.keys(answer_owner_data).length === 0) {
             // get the answer owner's data
@@ -66,8 +69,7 @@ export default function Answer({answer_data}) {
         }
         set_loading(false)
 
-    })(() => dispatch(extras_actions.random_error_on())) }
-        ,[])
+    } catch(e) {error_log(e)} })() ,[])
 
 
 

@@ -59,7 +59,6 @@ export async function question_create_async(req, res) { try {
     res.status(200).send(db_res)
 
 
-
     notify_active_clients(new Message({
         signal: `syn`,
         table: `questions`

@@ -81,6 +81,7 @@ export function error_log(e, res) {
 
 
 
+
 /* utility function to quickly notify all active clients about MESSAGE */
 export function notify_active_clients(message) {
     if (message.constructor.name !== `Message`) 
@@ -136,11 +137,6 @@ export class Message {
         this.table = table
     }
 }
-
-
-
-
-
 
 
 

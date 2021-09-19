@@ -3,6 +3,7 @@ import {backend_url, wtc, Navbar, get_user_info_async, new_user_obj, error_log} 
 import {useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions, questions_actions} from '../index.js'
+import {ws} from '../app.js'
 import axios from 'axios'
 
 /*
@@ -15,7 +16,7 @@ import axios from 'axios'
  * row-3: column with all questions
  *
  * */
-export default function Home({ws}) {
+export default function Home() {
     const dispatch = useDispatch()
     const history = useHistory()
     const [loading, set_loading] = React.useState(true)
@@ -38,7 +39,6 @@ export default function Home({ws}) {
                 ws.send(JSON.stringify({table, signal: `ack`}))
             }
         } catch(e) {error_log(e)} }
-
         ws.addEventListener(`message`, listener)
 
         if (!current_user && localStorage.getItem('github_api_token')) {

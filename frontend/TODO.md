@@ -21,7 +21,7 @@
 
 [*] TODO: test notification multiple clients
 [*] TODO: update questions list upon receiving event
-[] TODO: update question answer upon receiving event
+[*] TODO: update question answer upon receiving event
 [] TODO: implement the notification system
 [] TODO: implement answer comments
 [] TODO: implement the user profile page

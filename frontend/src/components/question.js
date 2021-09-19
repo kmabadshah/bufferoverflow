@@ -1,11 +1,13 @@
 import React from 'react'
 import {useParams} from 'react-router-dom'
 import axios from 'axios'
-import {backend_url, Navbar, sort_by_vote_count_and_timestamp, new_answer_obj, new_user_obj, get_user_info_async, Br, wtc} from './utilities'
+import {backend_url, Navbar, sort_by_vote_count_and_timestamp, 
+    new_answer_obj, error_log, new_user_obj, get_user_info_async, Br, wtc} from './utilities'
 import Answer from './answer'
 import {extras_actions, users_actions, questions_actions, already_voted_questions_actions, question_comments_actions, answers_actions} from '../index.js'
 import QuestionComment from './question_comment'
 import {useSelector, useDispatch} from 'react-redux'
+import {ws} from '../app.js'
 
 /*
  *
@@ -62,22 +64,71 @@ export default function Question() {
     
 
 
+    React.useEffect(() => (async() => { try {
+        const listener = async(e) => { try {
+            const {table} = JSON.parse(e.data)
+
+            if (table === `answers`) {
+                const res = await axios.get(`${backend_url}/answers/${question_id}`)
+                if (res.status === 200) {
+                    dispatch(answers_actions.update(res.data))
+                    ws.send(JSON.stringify({table, signal: `ack`}))
+                } 
+
+                else if (res.status !== 204) {
+                    ws.send(JSON.stringify({table, signal: `ack`}))
+                    throw res
+                }
+
+                else {
+                    ws.send(JSON.stringify({table, signal: `ack`}))
+                }
+            }
+        } catch(e) {error_log(e)} }
+        ws.addEventListener(`message`, listener)
+
+
+    } catch(e) {error_log(e)}  })())
 
 
 
-    React.useEffect(() => { wtc(async () => {
+
+    React.useEffect(() => (async() => { try {
         // register the instance if not exists,
         // and run the initialization code
         if (!already_rendered_instances.find(qid => qid === question_id)) {
             already_rendered_instances.push(question_id);
             let res, question_owner_user_id, current_user_F = current_user;
 
-            if (!current_user_F && localStorage.getItem('github_api_token')) {
-                let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
-                res = await axios.post(`${backend_url}/users`, user_data)
-                dispatch(users_actions.set_current_user(new_user_obj(res.data)))
-                current_user_F = res.data
-            }
+            if (!current_user_F) {
+                if (localStorage.getItem('github_api_token')) {
+                    // fetch current user
+                    let user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
+                    res = await axios.post(`${backend_url}/users`, user_data)
+                    if (res.status === 200) {
+                        dispatch(users_actions.set_current_user(res.data))
+
+                    } else {
+                        dispatch(users_actions.unset_current_user())
+                        throw res
+                    }
+                    current_user_F = res.data
+
+                    // question vote flag
+                    res = await axios.get(
+                        `${backend_url}/already_voted_questions/${question_id}/${current_user_F.user_id}`,
+                        {validateStatus: (status) => status < 500}
+                    )
+                    if (res.status === 200)
+                        dispatch(already_voted_questions_actions.update({
+                            question_id: question_id,
+                            user_id: current_user_F.user_id,
+                            vote_flag: res.data.vote_flag,
+                        }))
+
+                } else
+                    dispatch(users_actions.unset_current_user())
+            } 
 
             if (!question_data) {
                 // fetch the question with question_id
@@ -90,20 +141,6 @@ export default function Question() {
                 question_owner_user_id = question_data.user_id
             }
 
-
-            if (current_user_F) {
-                // question vote flag
-                res = await axios.get(
-                    `${backend_url}/already_voted_questions/${question_id}/${current_user_F.user_id}`,
-                    {validateStatus: (status) => status < 500}
-                )
-                if (res.status === 200)
-                    dispatch(already_voted_questions_actions.update({
-                        question_id: question_id,
-                        user_id: current_user_F.user_id,
-                        vote_flag: res.data.vote_flag,
-                    }))
-            }
 
             // fetch the question owner's info
             res = await axios.post(`${backend_url}/users`, { user_id: question_owner_user_id })
@@ -123,11 +160,9 @@ export default function Question() {
         } 
 
 
-
         set_loading(false)
 
-    })(() => dispatch(extras_actions.random_error_on())) }
-        ,[])
+    }  catch(e) {error_log(e)}  })(),[])
 
 
 
