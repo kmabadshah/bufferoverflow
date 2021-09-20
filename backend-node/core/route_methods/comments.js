@@ -1,5 +1,5 @@
 import {db} from '../main.js'
-import {wtc, error_log, Message, notify_active_clients} from './shared.js'
+import {wtc, error_log, notify_active_clients} from './shared.js'
 
 // POST /comments/{question_id}
 export const comment_create_async = async (req, res) => { try {
@@ -34,10 +34,10 @@ export const comment_create_async = async (req, res) => { try {
 
   res.status(200).send(db_res)
 
-  notify_active_clients(new Message({
+  notify_active_clients({
     signal: `syn`,
     table: `question_comments`
-  }))
+  })
 
 } catch(e) {error_log(e)} }
 

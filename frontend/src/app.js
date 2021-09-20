@@ -21,6 +21,29 @@ export default function App() {
         ws.addEventListener('open', (e) => { console.log(`connected`) })
         ws.addEventListener('close', e => console.log(`CLOSED`, e.data))
 
+        ws.addEventListener('message', async e => {
+            const {data, event} = JSON.parse(e.data)
+
+            console.log(data, event)
+            if (event === `created` && data[`table`] === `questions`) {
+                const res = await axios.get(`${backend_url}/questions/${data[`id`]}`)
+                if (res.status !== 200)
+                    throw res
+
+                dispatch(questions_actions.add(res.data))
+
+            } else if (event === `updated` && data[`table`] === `questions`) {
+                console.log(`yaya`)
+                const res = await axios.get(`${backend_url}/questions/${data[`id`]}`)
+                if (res.status !== 200)
+                    throw res
+
+                dispatch(questions_actions.update(res.data))
+            }
+
+            ws.send(JSON.stringify({data, event, signal: `ack`}))
+        })
+
         set_loading(false)
 
     } catch(e) {error_log(e)}}, [])

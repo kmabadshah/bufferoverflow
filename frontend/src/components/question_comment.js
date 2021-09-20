@@ -48,7 +48,6 @@ export default function QuestionComment({comment_data}) {
 
     // fetch and update vote flag, if any
     res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${current_user.user_id}`)
-    console.log(res)
     if (res.status !== 200 && res.status !== 204) 
       throw res
     if (res.status === 200) 

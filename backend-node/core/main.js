@@ -3,7 +3,7 @@ import axios from 'axios'
 import pg_promise from 'pg-promise'
 import {user_create_conditionally_async} from './route_methods/users.js'
 import {question_create_async, question_update_async, question_get_async, question_get_all_async} from './route_methods/questions.js'
-import {increment_or_decrement_table_vote_async, wtc, Message} from './route_methods/shared.js'
+import {increment_or_decrement_table_vote_async, wtc, error_log} from './route_methods/shared.js'
 import {answer_create_async, answer_update_async, answer_get_async} from './route_methods/answers.js'
 import {comment_create_async, comment_get_async, comment_update_async} from './route_methods/comments.js'
 import {parse} from 'url'
@@ -130,21 +130,11 @@ const handle_upgraded_socket = wtc((req, ws) => {
     }))
 
     ws.on(`message`, (msg) => { try {
-        let message = new Message(JSON.parse(msg.toString()))
+        let message = JSON.parse(msg.toString())
         if (message.signal === `ack`) 
-            ws.latest_message_from_client = message } 
+            ws.latest_message_from_client = message 
 
-        catch(e) {
-            const message = new Message({
-                signal: `fin`,
-                message: `MALFORMED data`
-            })
-            ws.send(JSON.stringify(message))
-            ws.terminate()
-        }
-    })
-
-    console.dir(sockets, {depth: 1})
+    } catch(e) {error_log(e)} })
 })
 
 

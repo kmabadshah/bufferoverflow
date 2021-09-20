@@ -84,9 +84,6 @@ export function error_log(e, res) {
 
 /* utility function to quickly notify all active clients about MESSAGE */
 export function notify_active_clients(message) {
-    if (message.constructor.name !== `Message`) 
-        throw `invalid arugment type`
-
     sockets.forEach(sc => { if (sc.status !== `open`) return;
         sc.send(JSON.stringify(message))
 
@@ -115,28 +112,6 @@ export function notify_active_clients(message) {
 
 
 
-/* 
- * implementation for building websocket messages 
- * EXAMPLE:
- *  {
- *    signal: syn,
- *    action: UPDATED,
- *    table: questions
- *  }
- * */
-export class Message {
-    constructor({signal, table}) {
-        const signals_enum = [`syn`, `ack`, `fin`]
-
-        if (!signals_enum.includes(signal)) 
-            throw `invalid signal`
-        if (!table)
-            throw `missing parameter: table`
-
-        this.signal = signal
-        this.table = table
-    }
-}
 
 
 
@@ -152,7 +127,7 @@ export class Message {
  * the id for /comment/.match(table_name) === true will be comment_id
  *
  * */
-export const increment_or_decrement_table_vote_async = wtc(async (req, res, table_name_singular, flag) => {
+export const increment_or_decrement_table_vote_async = async (req, res, table_name_singular, flag) => { try {
     if (
         !table_name_singular ||
         (
@@ -160,47 +135,47 @@ export const increment_or_decrement_table_vote_async = wtc(async (req, res, tabl
             && table_name_singular !== `answer`
             && table_name_singular !== `question_comment`
         )
-    ) {
-        console.log(`invalid table_name_singular argument: increment_or_decrement_vote_async()`)
-        return res.status(500)
-    }
+    ) throw `invalid table_name_singular argument: increment_or_decrement_vote_async()`
+
     const table_name_plural = table_name_singular + 's'
 
 
     if (flag !== `increment` && flag !== `decrement`)
-    {
-        console.log(`invalid flag argument: increment_or_decrement_vote_async()`)
-        return res.status(500)
-    }
-
+        throw `invalid flag argument: increment_or_decrement_vote_async()`
 
     let id_field_name;
     if (/comment/.test(table_name_singular))
-    {
         id_field_name = `comment_id`
-    }
     else
-    {
         id_field_name = table_name_singular + '_id'
-    }
 
 
     const row_id = req.params[id_field_name]
     let db_res = await db.oneOrNone(`
-        select * from ${table_name_plural}
-        where ${id_field_name}=$1
-    `, [row_id])
+            select * from ${table_name_plural}
+            where ${id_field_name}=$1
+        `, [row_id])
     if (!db_res) {
         return res.status(400).send(`invalid id`)
     }
 
     await db.oneOrNone(`
-        update ${table_name_plural}
-        set vote_count = vote_count ${flag === `increment` ? `+1` : `-1`}
-        where ${id_field_name}=$1
-    `, [row_id])
+            update ${table_name_plural}
+            set vote_count = vote_count ${flag === `increment` ? `+1` : `-1`}
+            where ${id_field_name}=$1
+        `, [row_id])
     res.status(204).send()
-})
+
+    notify_active_clients({
+        signal: `syn`,
+        event: `updated`,
+        data: {
+            table: table_name_plural,
+            id: row_id
+        }
+    })
+
+} catch(e) {error_log(e, res)} }
 
 
 

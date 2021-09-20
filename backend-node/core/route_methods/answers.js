@@ -1,5 +1,5 @@
 import {db, sockets} from '../main.js'
-import {Message, wtc, notify_active_clients} from './shared.js'
+import {wtc, notify_active_clients} from './shared.js'
 import pako from 'pako'
 import {createGzip} from 'zlib'
 import { pipeline } from 'stream'
@@ -43,10 +43,10 @@ export async function answer_create_async(req, res) { try {
     res.status(200).send(db_res)
 
     
-    notify_active_clients(new Message({
+    notify_active_clients({
         signal: `syn`,
         table: `answers`
-    }))
+    })
 
 } catch(e) { error_log(e, res) } }
 

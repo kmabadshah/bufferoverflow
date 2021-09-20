@@ -1,5 +1,5 @@
 import {db, sockets} from '../main.js'
-import {Message, wtc, error_log, notify_active_clients} from './shared.js'
+import {wtc, error_log, notify_active_clients} from './shared.js'
 
 export async function question_create_async(req, res) { try {
     // get the post data BEGIN
@@ -48,10 +48,14 @@ export async function question_create_async(req, res) { try {
 
 
     res.status(200).send(db_res)
-    notify_active_clients(new Message({
+    notify_active_clients({
         signal: `syn`,
-        table: `questions`
-    }))
+        event: `created`,
+        data: {
+            table: `questions`,
+            question_id: db_res.question_id
+        }
+    })
 
 } catch(e) {error_log(e, res)} } 
 
@@ -95,9 +99,7 @@ export async function question_update_async(req, res) {
     const {description} = req.body
 
     if (!description)
-    {
         return res.status(400).send(`invalid description`)
-    }
 
     await db.none(`
     update questions
@@ -105,7 +107,16 @@ export async function question_update_async(req, res) {
     where question_id=$2
   `, [description, question_id])
 
-    return res.status(204).send()
+    res.status(204).send()
+
+    notify_active_clients({
+        signal: `syn`,
+        event: `created`,
+        data: {
+            table: `questions`,
+            question_id: question_id
+        }
+    })
 }
 
 
