@@ -2,13 +2,6 @@ import {db, sockets} from '../main.js'
 import {Message, wtc, error_log, notify_active_clients} from './shared.js'
 
 export async function question_create_async(req, res) { try {
-    /*
-     *
-     * create a question if not exists,
-     * return 400 and proper message is not exists
-     *
-     */
-
     // get the post data BEGIN
     const question_obj = req.body
     const {title, description, user_id} = question_obj
@@ -16,12 +9,11 @@ export async function question_create_async(req, res) { try {
     if (!title || !description || !user_id) {
         return res.status(400).send('missing fields')
     }
-    // get the post data END
 
 
 
 
-    // check if the question already exists BEGIN
+    // check if the question already exists
     let db_res_title = await db.oneOrNone(`
             select * from questions
             where title=$1
@@ -39,7 +31,6 @@ export async function question_create_async(req, res) { try {
     if (db_res_description) {
         return res.status(400).send(`duplicate description`)
     }
-    // check if the question already exists END
 
 
 
@@ -57,14 +48,10 @@ export async function question_create_async(req, res) { try {
 
 
     res.status(200).send(db_res)
-
-
     notify_active_clients(new Message({
         signal: `syn`,
         table: `questions`
-    })
-)
-
+    }))
 
 } catch(e) {error_log(e, res)} } 
 

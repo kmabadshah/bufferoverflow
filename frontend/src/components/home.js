@@ -57,8 +57,6 @@ export default function Home() {
         }
         set_loading(false)
 
-        return () => ws.removeEventListener(ws, listener)
-
     } catch(e) {error_log(e)} })(), [])
 
 

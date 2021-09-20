@@ -23,57 +23,57 @@ import './tailwind.css';
  *
  * */
 function create_already_voted_slice(action_name) {
-    let row_id_property_name;
+  let row_id_property_name;
 
-    switch (action_name) {
-        case `already_voted_question_comments`:
-            row_id_property_name = `comment_id`
-            break
+  switch (action_name) {
+    case `already_voted_question_comments`:
+      row_id_property_name = `comment_id`
+      break
 
-        case `already_voted_questions`:
-            row_id_property_name = `question_id`
-            break
+    case `already_voted_questions`:
+      row_id_property_name = `question_id`
+      break
 
-        case `already_voted_answers`:
-            row_id_property_name = `answer_id`
-            break
+    case `already_voted_answers`:
+      row_id_property_name = `answer_id`
+      break
 
-        default:
-            throw `invalid action_name`
-    }
+    default:
+      throw `invalid action_name`
+  }
 
 
-    return createSlice({
-        name: action_name,
-        initialState: [],
-        reducers: {
-            delete: (state, {payload}) => state.filter(avq => {
-                if (avq[row_id_property_name] === payload[row_id_property_name] && avq.user_id === payload.user_id)
-                    return false
-                else
-                    return true
-            }),
-            update: (state, {payload}) => {
-                payload = {
-                    user_id: payload[`user_id`], 
-                    vote_flag: payload[`vote_flag`],
-                    [row_id_property_name]: payload[row_id_property_name]
-                }
-
-                const found = state.find(avq => avq[row_id_property_name] === payload[row_id_property_name] && avq.user_id === payload.user_id)
-                if (!found) // insert
-                    return [...state, payload]
-
-                else // update
-                    return state.map(avq => {
-                        if (avq[row_id_property_name] === payload[row_id_property_name] && avq.user_id === payload.user_id)
-                            return payload
-                        else
-                            return avq
-                    })
-            }
+  return createSlice({
+    name: action_name,
+    initialState: [],
+    reducers: {
+      delete: (state, {payload}) => state.filter(avq => {
+        if (avq[row_id_property_name] === payload[row_id_property_name] && avq.user_id === payload.user_id)
+          return false
+        else
+          return true
+      }),
+      update: (state, {payload}) => {
+        payload = {
+          user_id: payload[`user_id`], 
+          vote_flag: payload[`vote_flag`],
+          [row_id_property_name]: payload[row_id_property_name]
         }
-    })
+
+        const found = state.find(avq => avq[row_id_property_name] === payload[row_id_property_name] && avq.user_id === payload.user_id)
+        if (!found) // insert
+          return [...state, payload]
+
+        else // update
+          return state.map(avq => {
+            if (avq[row_id_property_name] === payload[row_id_property_name] && avq.user_id === payload.user_id)
+              return payload
+            else
+              return avq
+          })
+      }
+    }
+  })
 }
 
 
@@ -81,23 +81,23 @@ function create_already_voted_slice(action_name) {
 
 
 export const {reducer: extras_reducer, actions: extras_actions} = createSlice({
-name: 'extras',
-initialState: {
+  name: 'extras',
+  initialState: {
     random_error: false,
     fetched_all_questions: false
-},
-reducers: {
+  },
+  reducers: {
     random_error_on: (state) => {
-        state.random_error = true
+      state.random_error = true
     },
     random_error_off: (state) => {
-        state.random_error = false
+      state.random_error = false
     },
 
     fetched_all_questions_on: state => {
-        state.fetched_all_questions = true
+      state.fetched_all_questions = true
     }
-}
+  }
 })
 
 
@@ -105,30 +105,30 @@ reducers: {
 
 
 export const {reducer: users_reducer, actions: users_actions} = createSlice({
-name: 'users',
-initialState: {
+  name: 'users',
+  initialState: {
     current_user: undefined,
     list: []
-},
-reducers: {
+  },
+  reducers: {
     set_current_user: (state, action) => {
-        state.current_user = action.payload
+      state.current_user = action.payload
     },
 
     unset_current_user: (state, _) => {
-        state.current_user = null
+      state.current_user = null
     },
 
     // adds if not available, update otherwise
     update: (state, {payload}) => {
-        const exists = state.list.find(u => u.user_id === payload.user_id)
-        
-        if (!exists) 
-            state.list = [...state.list, payload]
-        else 
-            state.list = state.list.map(u => u.user_id === payload.user_id ? payload:u)
+      const exists = state.list.find(u => u.user_id === payload.user_id)
+
+      if (!exists) 
+        state.list = [...state.list, payload]
+      else 
+        state.list = state.list.map(u => u.user_id === payload.user_id ? payload:u)
     }
-}
+  }
 })
 
 
@@ -139,64 +139,85 @@ reducers: {
 
 /* =========QUESTIONS SECTION=========== */
 export const {reducer: questions_reducer, actions: questions_actions} = createSlice({
-name: 'questions',
-initialState: [],
-reducers: {
+  name: 'questions',
+  initialState: [],
+  reducers: {
     add: (state, {payload}) => {
-        if (payload.constructor.name === `Array`)
-            return [...state, ...payload]
+      if (payload.constructor.name === `Array`)
+        return [...state, ...payload]
 
-        else
-            return [...state, payload]
+      else
+        return [...state, payload]
     },
 
     set: (state, {payload}) => payload,
 
     // expecting payload to be a full question object
     update: (state, {payload}) => {
-        return state.map(q => {
-            if (q.question_id === payload.question_id)
-                return payload
-            else
-                return q
-        })
+      return state.map(q => {
+        if (q.question_id === payload.question_id)
+          return payload
+        else
+          return q
+      })
     }
-}
+  }
 })
 
 export const {
-reducer: already_voted_questions_reducer, 
-actions: already_voted_questions_actions} = create_already_voted_slice(`already_voted_questions`)
+  reducer: already_voted_questions_reducer, 
+  actions: already_voted_questions_actions} = create_already_voted_slice(`already_voted_questions`)
 
 export const {
-    reducer: already_voted_question_comments_reducer, 
-    actions: already_voted_question_comments_actions} = create_already_voted_slice(`already_voted_question_comments`)
+  reducer: already_voted_question_comments_reducer, 
+  actions: already_voted_question_comments_actions} = create_already_voted_slice(`already_voted_question_comments`)
 
 export const {reducer: question_comments_reducer, actions: question_comments_actions} = createSlice({
-    name: 'question_comments',
-    initialState: [],
-    reducers: {
-        add: (state, {payload}) => {
-            let new_state;
+  name: 'question_comments',
+  initialState: [],
+  reducers: {
+    add: (state, {payload}) => {
+      let new_state;
 
-            if (payload.constructor.name === `Array`)
-                new_state = [...state, ...payload]
-            else
-                new_state =  [...state, payload]
+      if (payload.constructor.name === `Array`)
+        new_state = [...state, ...payload]
+      else
+        new_state =  [...state, payload]
 
-            new_state.sort(sort_by_vote_count_and_timestamp)
-            return new_state
-        },
+      new_state.sort(sort_by_vote_count_and_timestamp)
+      return new_state
+    },
 
-        update: (state, {payload}) => {
-            return state.map(c => {
-                if (c.comment_id === payload.comment_id && c.user_id === payload.user_id)
-                    return payload
-                else
-                    return c
-            })
+    update: (state, {payload}) => {
+      if (payload.constructor.name === `Array`) {
+        const new_state = [...state]
+
+        for (const i1 in payload) {
+          let found;
+          for (const i2 in state) {
+            if (payload[i1].comment_id === state[i2].comment_id) {
+              new_state[i2] = payload[i1]
+              found = true
+            }
+          }
+
+          if (!found) {
+            new_state.push(payload[i1])
+          }
         }
+
+        return new_state
+      }
+
+      return state.map(c => {
+        if (c.comment_id === payload.comment_id && c.user_id === payload.user_id)
+          return payload
+        else
+          return c
+      })
     }
+
+  }
 })
 
 
@@ -209,57 +230,57 @@ export const {reducer: question_comments_reducer, actions: question_comments_act
 
 /* =========ANSWERS SECTION=========== */
 export const {reducer: answers_reducer, actions: answers_actions} = createSlice({
-    name: 'answers',
-    initialState: [],
-    reducers: {
-        add: (state, {payload}) => {
-            let new_state;
+  name: 'answers',
+  initialState: [],
+  reducers: {
+    add: (state, {payload}) => {
+      let new_state;
 
-            if (payload.constructor.name === `Array`)
-                new_state = [...state, ...payload]
-            else
-                new_state =  [...state, payload]
+      if (payload.constructor.name === `Array`)
+        new_state = [...state, ...payload]
+      else
+        new_state =  [...state, payload]
 
-            new_state.sort(sort_by_vote_count_and_timestamp)
-            return new_state
-        },
+      new_state.sort(sort_by_vote_count_and_timestamp)
+      return new_state
+    },
 
-        // expecting payload to be a full answer object
-        update: (state, {payload}) => {
-            if (payload.constructor.name === `Array`) {
-                const new_state = [...state]
+    // expecting payload to be a full answer object
+    update: (state, {payload}) => {
+      if (payload.constructor.name === `Array`) {
+        const new_state = [...state]
 
-                for (const i1 in payload) {
-                    let found;
-                    for (const i2 in state) {
-                        if (payload[i1].answer_id === state[i2].answer_id) {
-                            new_state[i2] = payload[i1]
-                            found = true
-                        }
-                    }
-
-                    if (!found) {
-                        new_state.push(payload[i1])
-                    }
-                }
-
-                return new_state
+        for (const i1 in payload) {
+          let found;
+          for (const i2 in state) {
+            if (payload[i1].answer_id === state[i2].answer_id) {
+              new_state[i2] = payload[i1]
+              found = true
             }
+          }
 
-            else return state.map(q => {
-                if (q.answer_id === payload.answer_id)
-                    return payload
-                else
-                    return q
-            })
-        },
+          if (!found) {
+            new_state.push(payload[i1])
+          }
+        }
 
-    }
+        return new_state
+      }
+
+      else return state.map(q => {
+        if (q.answer_id === payload.answer_id)
+          return payload
+        else
+          return q
+      })
+    },
+
+  }
 })
 
 export const {
-    reducer: already_voted_answers_reducer, 
-    actions: already_voted_answers_actions } = create_already_voted_slice(`already_voted_answers`)
+  reducer: already_voted_answers_reducer, 
+  actions: already_voted_answers_actions } = create_already_voted_slice(`already_voted_answers`)
 
 
 
@@ -267,26 +288,26 @@ export const {
 
 
 const store = configureStore({
-    reducer: {
-        extras: extras_reducer,
-        users: users_reducer,
+  reducer: {
+    extras: extras_reducer,
+    users: users_reducer,
 
-        questions: questions_reducer,
-        question_comments: question_comments_reducer,
-        already_voted_questions: already_voted_questions_reducer,
-        already_voted_question_comments: already_voted_question_comments_reducer,
+    questions: questions_reducer,
+    question_comments: question_comments_reducer,
+    already_voted_questions: already_voted_questions_reducer,
+    already_voted_question_comments: already_voted_question_comments_reducer,
 
-        answers: answers_reducer,
-        already_voted_answers: already_voted_answers_reducer,
-    }
+    answers: answers_reducer,
+    already_voted_answers: already_voted_answers_reducer,
+  }
 })
 
 
 
 ReactDOM.render(
-    <Provider store={store}>
-        <App />
-    </Provider>,
-    document.querySelector("#root")
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.querySelector("#root")
 );
 

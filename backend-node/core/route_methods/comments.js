@@ -1,20 +1,16 @@
 import {db} from '../main.js'
-import {wtc} from './shared.js'
+import {wtc, error_log, Message, notify_active_clients} from './shared.js'
 
 // POST /comments/{question_id}
-export const comment_create_async = wtc(async (req, res) => {
+export const comment_create_async = async (req, res) => { try {
   const question_id = req.params.question_id
   const {text, user_id} = req.body
 
   if (!text)
-  {
     return res.status(400).send(`invalid text field value`)
-  }
 
   if (!user_id)
-  {
     return res.status(400).send(`invalid user_id field value`)
-  }
 
   // check for duplicate comment text
   let db_res = await db.oneOrNone(`
@@ -23,9 +19,7 @@ export const comment_create_async = wtc(async (req, res) => {
     `, [text])
 
   if (db_res)
-  {
     return res.status(400).send(`duplicate text field value`)
-  }
 
   await db.none(`
     insert into question_comments
@@ -39,7 +33,17 @@ export const comment_create_async = wtc(async (req, res) => {
   `, [text, question_id, user_id])
 
   res.status(200).send(db_res)
-})
+
+  notify_active_clients(new Message({
+    signal: `syn`,
+    table: `question_comments`
+  }))
+
+} catch(e) {error_log(e)} }
+
+
+
+
 
 // GET /comments/{question_id}
 export const comment_get_async = wtc(async(req, res) => {
@@ -54,15 +58,17 @@ export const comment_get_async = wtc(async(req, res) => {
 })
 
 
+
+
+
+
 // PUT /comments/{comment_id} -d {text: `something`}
 export const comment_update_async = wtc(async(req, res) => {
   const comment_id = req.params.comment_id
   const {text} = req.body
 
   if (!text)
-  {
     return res.status(400).send(`invalid text field value`)
-  }
 
   await db.none(`
     update question_comments
