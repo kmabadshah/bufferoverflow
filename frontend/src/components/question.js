@@ -7,7 +7,6 @@ import Answer from './answer'
 import {extras_actions, users_actions, questions_actions, already_voted_questions_actions, question_comments_actions, answers_actions} from '../index.js'
 import QuestionComment from './question_comment'
 import {useSelector, useDispatch} from 'react-redux'
-import {ws} from '../app.js'
 
 /*
  *

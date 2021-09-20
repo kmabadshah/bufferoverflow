@@ -5,7 +5,6 @@ import {useSelector, useDispatch} from 'react-redux'
 import {useHistory} from 'react-router-dom'
 import PropTypes from 'prop-types'
 import {extras_actions, users_actions, already_voted_answers_actions, answers_actions, questions_actions} from '../index.js'
-import {ws} from '../app.js'
 
 Answer.propTypes = {
     answer_data: PropTypes.object.isRequired

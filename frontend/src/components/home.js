@@ -3,7 +3,6 @@ import {backend_url, wtc, Navbar, get_user_info_async, new_user_obj, error_log} 
 import {useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
 import {extras_actions, users_actions, questions_actions} from '../index.js'
-import {ws} from '../app.js'
 import axios from 'axios'
 
 /*
@@ -56,7 +55,7 @@ export default function Home() {
         }
         set_loading(false)
 
-    } catch(e) {error_log(e)} })(), [])
+    } catch(e) {error_log(e, true)} })(), [])
 
 
 
@@ -99,9 +98,8 @@ export default function Home() {
 
 
 
-
+    if (random_error) return `something went wrong, please try refreshing the page`
     if (loading) return `loading...`
-    else if (random_error) return `something went wrong, please try refreshing the page`
     else return (
         <div className={`flex flex-col h-screen container mx-auto`}>
             {/* row-1 */}

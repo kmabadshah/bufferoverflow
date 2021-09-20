@@ -287,7 +287,7 @@ export const {
 
 
 
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     extras: extras_reducer,
     users: users_reducer,

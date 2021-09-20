@@ -4,7 +4,6 @@ import {backend_url, Navbar, new_answer_obj, Br, wtc, error_log} from './utiliti
 import {extras_actions, question_comments_actions, users_actions, already_voted_question_comments_actions} from '../index.js'
 import {useSelector, useDispatch} from 'react-redux'
 import PropTypes from 'prop-types'
-import {ws} from '../app.js'
 
 
 QuestionComment.propTypes = {
