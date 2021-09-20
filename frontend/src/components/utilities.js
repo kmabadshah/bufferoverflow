@@ -360,7 +360,6 @@ export function Navbar() {
             // history.push() to /users/{id} page
             // turn state.loading = false
 
-            dispatch(extras_actions.loading_on())
             history.push(`/users/${current_user.user_id}`)
         }
 

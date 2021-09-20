@@ -24,7 +24,8 @@
 [*] TODO: update question answer upon receiving event
 [*] TODO: update question comments upon receiving event
 [*] TODO: update question vote count upon receiving event
-[] TODO: update question description upon receiving event
+[*] TODO: update question description upon receiving event
+[] TODO: reconnect with the server if connection drops
 [] TODO: implement the notification system
 [] TODO: implement answer comments
 [] TODO: implement the user profile page
