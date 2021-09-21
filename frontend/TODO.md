@@ -28,8 +28,12 @@
 [*] TODO: reconnect with the server if connection drops
 [*] TODO: add answers in real time
 [*] TODO: vote answers in real time
-[] TODO: edit answers in real time
-[] TODO: implement the notification system
+[*] TODO: edit answers in real time
+
+[] TODO: add question comments in real time
+[] TODO: vote question comments in real time
+[] TODO: edit question comments in real time
+
 [] TODO: implement answer comments
 [] TODO: implement the user profile page
 [] TODO: questions, answers, comments deletable by their owners

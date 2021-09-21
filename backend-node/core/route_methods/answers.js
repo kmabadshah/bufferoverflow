@@ -112,5 +112,13 @@ export async function answer_update_async(req, res) { try {
     `, [text, answer_id])
 
     res.status(204).send()
+    notify_active_clients({
+        signal: `syn`,
+        event: `updated`,
+        data: {
+            table: `answers`,
+            answer_id: answer_id,
+        }
+    })
 
 } catch(e) { error_log(e, res) } }
