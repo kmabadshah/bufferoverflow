@@ -24,7 +24,6 @@ export default function App() {
 
 
 
-
   if (window.location.pathname === '/oauth_consent') {
     const string_before_api_token = window.location.href
     localStorage.setItem('string_before_api_token', string_before_api_token)

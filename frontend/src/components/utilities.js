@@ -3,7 +3,7 @@ import axios from 'axios'
 import React from 'react';
 import {Link, useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
-import {extras_actions, users_actions, store, questions_actions} from '../index.js'
+import {extras_actions, users_actions, store, questions_actions, answers_actions} from '../index.js'
 import PropTypes from 'prop-types'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
@@ -69,6 +69,7 @@ export function wtc(f) {
 
 
 
+
 export function error_log(e, show_random_error) {
   console.log(`-------------ERROR_BEGIN---------`)
   console.dir(e)
@@ -108,6 +109,9 @@ export const sort_by_vote_count_and_timestamp = wtc((a, b) => {
 
 
 
+
+
+
 export const ws_connect = () => {
   let ws = new ReconnectingWebSocket(`ws://localhost:8000/websocket`)
 
@@ -123,15 +127,22 @@ export const ws_connect = () => {
   ws.addEventListener('message', async e => {
     const {data, event} = JSON.parse(e.data)
 
-    if (event === `created` && data[`table`] === `questions`) {
-      const res = await axios.get(`${backend_url}/questions/${data[`id`]}`)
-      if (res.status !== 200)
-        throw res
+    if (event === `created`) {
+      if (data[`table`] === `questions`) {
+        const res = await axios.get(`${backend_url}/questions/${data[`question_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(questions_actions.add(res.data))
 
-      store.dispatch(questions_actions.add(res.data))
+      } else if (data[`table`] === `answers`) {
+        const res = await axios.get(`${backend_url}/answers/${data[`question_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(answers_actions.add(res.data))
+      }
 
     } else if (event === `updated` && data[`table`] === `questions`) {
-      const res = await axios.get(`${backend_url}/questions/${data[`id`]}`)
+      const res = await axios.get(`${backend_url}/questions/${data[`question_id`]}`)
       if (res.status !== 200)
         throw res
 
@@ -141,6 +152,7 @@ export const ws_connect = () => {
     ws.send(JSON.stringify({data, event, signal: `ack`}))
   })
 }
+
 
 
 

@@ -41,11 +41,13 @@ export async function answer_create_async(req, res) { try {
     `, [ans_obj.text])
 
     res.status(200).send(db_res)
-
-    
     notify_active_clients({
         signal: `syn`,
-        table: `answers`
+        event: `created`,
+        data: {
+            table: `answers`,
+            question_id: db_res.question_id,
+        }
     })
 
 } catch(e) { error_log(e, res) } }

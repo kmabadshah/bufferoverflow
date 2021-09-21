@@ -109,13 +109,12 @@ export async function question_update_async(req, res) { try {
         `, [description, question_id])
 
     res.status(204).send()
-
     notify_active_clients({
         signal: `syn`,
         event: `updated`,
         data: {
             table: `questions`,
-            id: question_id
+            question_id: question_id
         }
     })
 

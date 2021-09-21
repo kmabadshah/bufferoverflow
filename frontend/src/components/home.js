@@ -25,20 +25,6 @@ export default function Home() {
 
 
     React.useEffect(() => (async() => { try {
-        // const listener = async(e) => { try {
-        //     const {table} = JSON.parse(e.data)
-
-        //     if (table === `questions`) {
-        //         const res = await axios.get(`${backend_url}/questions`)
-        //         if (res.status !== 200)
-        //             throw res
-
-        //         dispatch(questions_actions.set(res.data))
-        //         ws.send(JSON.stringify({table, signal: `ack`}))
-        //     }
-        // } catch(e) {error_log(e)} }
-        // ws.addEventListener(`message`, listener)
-
         if (!current_user && localStorage.getItem('github_api_token')) {
             const user_data = await get_user_info_async(localStorage.getItem('github_api_token'))
             const {data} = await axios.post(`${backend_url}/users`, user_data)

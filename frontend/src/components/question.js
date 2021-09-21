@@ -60,46 +60,6 @@ export default function Question() {
   }) || {};
 
 
-
-
-
-  // React.useEffect(() => (async() => { try {
-  //   const listener = async(e) => {
-  //     let res;
-  //     const {table} = JSON.parse(e.data)
-
-  //     if (table === `answers`) {
-  //       res = await axios.get(`${backend_url}/answers/${question_id}`)
-  //       if (res.status !== 200 && res.status !== 204) {
-  //         ws.send(JSON.stringify({table, signal: `ack`}))
-  //         throw res
-  //       }
-
-  //       if (res.status === 200) {
-  //         dispatch(answers_actions.update(res.data))
-  //       } 
-
-  //     } else if (table === `question_comments`) {
-  //       // get question_comments
-  //       res = await axios.get(`${backend_url}/question_comments/${question_id}`)
-  //       if (res.status !== 200 && res.status !== 204) {
-  //         ws.send(JSON.stringify({table, signal: `ack`}))
-  //         throw res
-  //       }
-
-  //       if (res.status === 200) {
-  //         dispatch(question_comments_actions.update(res.data))
-  //       }
-  //     }
-
-  //     ws.send(JSON.stringify({table, signal: `ack`}))
-  //   }
-
-  //   ws.addEventListener(`message`, listener)
-
-  // } catch(e) {error_log(e)}  })(), [])
-
-
   
 
 

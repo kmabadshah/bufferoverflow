@@ -171,7 +171,7 @@ export const increment_or_decrement_table_vote_async = async (req, res, table_na
         event: `updated`,
         data: {
             table: table_name_plural,
-            id: row_id
+            [id_field_name]: row_id
         }
     })
 
