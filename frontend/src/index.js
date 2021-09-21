@@ -233,13 +233,21 @@ export const {reducer: answers_reducer, actions: answers_actions} = createSlice(
   name: 'answers',
   initialState: [],
   reducers: {
+    // add if not exists
     add: (state, {payload}) => {
-      let new_state;
+      let new_state = [...state];
 
       if (payload.constructor.name === `Array`)
-        new_state = [...state, ...payload]
-      else
-        new_state =  [...state, payload]
+        new_state = [...new_state, ...payload]
+      else if (payload.constructor.name === `Object`) {
+        const exists = state.find(ans => ans.answer_id === payload.answer_id)
+        if (!exists) {
+          new_state =  [...state, payload]
+        }
+      }
+      else {
+        throw `invalid payload type`
+      }
 
       new_state.sort(sort_by_vote_count_and_timestamp)
       return new_state

@@ -27,7 +27,8 @@
 [*] TODO: update question description upon receiving event
 [*] TODO: reconnect with the server if connection drops
 [*] TODO: add answers in real time
-[] TODO: vote answers in real time
+[*] TODO: vote answers in real time
+[] TODO: edit answers in real time
 [] TODO: implement the notification system
 [] TODO: implement answer comments
 [] TODO: implement the user profile page

@@ -33,7 +33,6 @@ export async function answer_create_async(req, res) { try {
     `, [ans_obj.text, ans_obj.user_id, ans_obj.question_id])
 
 
-
     // fetch the answer
     db_res = await db.one(`
         select * from answers
@@ -46,7 +45,7 @@ export async function answer_create_async(req, res) { try {
         event: `created`,
         data: {
             table: `answers`,
-            question_id: db_res.question_id,
+            answer_id: db_res.answer_id,
         }
     })
 
@@ -58,8 +57,7 @@ export async function answer_create_async(req, res) { try {
 
 
 
-
-export async function answer_get_async(req, res) { try {
+export async function answer_get_question_id_async(req, res) { try {
     const question_id = req.params.question_id
 
     const db_res = await db.manyOrNone(`
@@ -80,6 +78,23 @@ export async function answer_get_async(req, res) { try {
 
 
 
+export async function answer_get_answer_id_async(req, res) { try {
+    const answer_id = req.params.answer_id
+
+    const db_res = await db.oneOrNone(`
+            select * from answers
+            where answer_id=$1
+        `, [answer_id])
+    if (!db_res) {
+        res.status(400).send(`invalid answer_id`)
+    }
+    res.status(200).send(db_res)
+
+} catch(e) {error_log(e, res)} }
+
+
+
+
 
 
 export async function answer_update_async(req, res) { try {
@@ -87,7 +102,7 @@ export async function answer_update_async(req, res) { try {
     const text = req.body.text
 
     if (!text) {
-      req.status(200).send(`invalid text field value`)
+        req.status(200).send(`invalid text field value`)
     }
 
     await db.none(`
@@ -97,6 +112,5 @@ export async function answer_update_async(req, res) { try {
     `, [text, answer_id])
 
     res.status(204).send()
-  }
-  catch(e) { error_log(e, res) }
-}
+
+} catch(e) { error_log(e, res) } }

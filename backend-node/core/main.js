@@ -4,7 +4,7 @@ import pg_promise from 'pg-promise'
 import {user_create_conditionally_async} from './route_methods/users.js'
 import {question_create_async, question_update_async, question_get_async, question_get_all_async} from './route_methods/questions.js'
 import {increment_or_decrement_table_vote_async, wtc, error_log} from './route_methods/shared.js'
-import {answer_create_async, answer_update_async, answer_get_async} from './route_methods/answers.js'
+import {answer_create_async, answer_update_async, answer_get_question_id_async, answer_get_answer_id_async} from './route_methods/answers.js'
 import {comment_create_async, comment_get_async, comment_update_async} from './route_methods/comments.js'
 import {parse} from 'url'
 import {
@@ -97,7 +97,8 @@ app.delete(`/already_voted_question_comments/:comment_id/:user_id`, (req, res) =
 
 /* ANSWERS SECTION */
 app.post(`/answers`, answer_create_async)
-app.get(`/answers/:question_id`, answer_get_async)
+app.get(`/answers/question/:question_id`, answer_get_question_id_async)
+app.get(`/answers/:answer_id`, answer_get_answer_id_async)
 app.put(`/answers/:answer_id`, answer_update_async)
 
 app.get(`/increment_vote/answers/:answer_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `answer`, `increment`))

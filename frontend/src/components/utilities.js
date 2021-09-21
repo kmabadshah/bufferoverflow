@@ -135,18 +135,25 @@ export const ws_connect = () => {
         store.dispatch(questions_actions.add(res.data))
 
       } else if (data[`table`] === `answers`) {
-        const res = await axios.get(`${backend_url}/answers/${data[`question_id`]}`)
+        const res = await axios.get(`${backend_url}/answers/${data[`answer_id`]}`)
         if (res.status !== 200)
           throw res
         store.dispatch(answers_actions.add(res.data))
       }
 
-    } else if (event === `updated` && data[`table`] === `questions`) {
-      const res = await axios.get(`${backend_url}/questions/${data[`question_id`]}`)
-      if (res.status !== 200)
-        throw res
+    } else if (event === `updated`) {
+      if (data[`table`] === `questions`) {
+        const res = await axios.get(`${backend_url}/questions/${data[`question_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(questions_actions.update(res.data))
 
-      store.dispatch(questions_actions.update(res.data))
+      } else if (data[`table`] === `answers`) {
+        const res = await axios.get(`${backend_url}/answers/${data[`answer_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(answers_actions.update(res.data))
+      }
     }
 
     ws.send(JSON.stringify({data, event, signal: `ack`}))
