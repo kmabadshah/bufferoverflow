@@ -33,10 +33,13 @@ export const comment_create_async = async (req, res) => { try {
   `, [text, question_id, user_id])
 
   res.status(200).send(db_res)
-
   notify_active_clients({
     signal: `syn`,
-    table: `question_comments`
+    event: `created`,
+    data: {
+      table: `question_comments`,
+      comment_id: db_res.comment_id
+    }
   })
 
 } catch(e) {error_log(e)} }
@@ -45,7 +48,6 @@ export const comment_create_async = async (req, res) => { try {
 
 
 
-// GET /comments/{question_id}
 export const comment_get_async = wtc(async(req, res) => {
   const question_id = req.params.question_id
 
@@ -60,9 +62,21 @@ export const comment_get_async = wtc(async(req, res) => {
 
 
 
+export const comment_get_one_async = wtc(async(req, res) => {
+  const comment_id = req.params.comment_id
+
+  const db_res = await db.oneOrNone(`
+      select * from question_comments
+      where comment_id=$1
+    `, [comment_id])
+
+  res.status(200).send(db_res)
+})
 
 
-// PUT /comments/{comment_id} -d {text: `something`}
+
+
+
 export const comment_update_async = wtc(async(req, res) => {
   const comment_id = req.params.comment_id
   const {text} = req.body
@@ -76,4 +90,13 @@ export const comment_update_async = wtc(async(req, res) => {
   `, [text, comment_id])
 
   res.status(204).send()
+  notify_active_clients({
+    signal: `syn`,
+    event: `updated`,
+    data: {
+      table: `question_comments`,
+      comment_id: comment_id
+    }
+  })
+
 })

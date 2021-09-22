@@ -30,9 +30,9 @@
 [*] TODO: vote answers in real time
 [*] TODO: edit answers in real time
 
-[] TODO: add question comments in real time
-[] TODO: vote question comments in real time
-[] TODO: edit question comments in real time
+[*] TODO: add question comments in real time
+[*] TODO: vote question comments in real time
+[*] TODO: edit question comments in real time
 
 [] TODO: implement answer comments
 [] TODO: implement the user profile page

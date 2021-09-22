@@ -118,7 +118,7 @@ export default function Question() {
       dispatch(users_actions.update(res.data))
 
       // get question_comments
-      res = await axios.get(`${backend_url}/question_comments/${question_id}`)
+      res = await axios.get(`${backend_url}/question_comments/question/${question_id}`)
       if (res.status !== 200) throw res
       dispatch(question_comments_actions.add(res.data))
 

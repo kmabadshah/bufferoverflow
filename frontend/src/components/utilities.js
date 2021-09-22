@@ -3,7 +3,7 @@ import axios from 'axios'
 import React from 'react';
 import {Link, useHistory} from 'react-router-dom'
 import {useSelector, useDispatch} from 'react-redux'
-import {extras_actions, users_actions, store, questions_actions, answers_actions} from '../index.js'
+import {extras_actions, users_actions, store, questions_actions, answers_actions, question_comments_actions} from '../index.js'
 import PropTypes from 'prop-types'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 
@@ -139,6 +139,12 @@ export const ws_connect = () => {
         if (res.status !== 200)
           throw res
         store.dispatch(answers_actions.add(res.data))
+
+      } else if (data[`table`] == `question_comments`) {
+        const res = await axios.get(`${backend_url}/question_comments/${data[`comment_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(question_comments_actions.add(res.data))
       }
 
     } else if (event === `updated`) {
@@ -153,6 +159,12 @@ export const ws_connect = () => {
         if (res.status !== 200)
           throw res
         store.dispatch(answers_actions.update(res.data))
+
+      } else if (data[`table`] == `question_comments`) {
+        const res = await axios.get(`${backend_url}/question_comments/${data[`comment_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(question_comments_actions.update(res.data))
       }
     }
 
