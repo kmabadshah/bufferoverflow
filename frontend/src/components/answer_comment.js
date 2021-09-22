@@ -5,11 +5,10 @@ import {extras_actions, question_comments_actions, users_actions, already_voted_
 import {useSelector, useDispatch} from 'react-redux'
 import PropTypes from 'prop-types'
 
-
-QuestionComment.propTypes = {
+AnswerComment.propTypes = {
   comment_data: PropTypes.object.isRequired
 }
-export default function QuestionComment({comment_data}) {
+export default function AnswerComment({comment_data}) {
   const 
   [loading, set_loading] = React.useState(true),
   dispatch = useDispatch(),
@@ -19,15 +18,17 @@ export default function QuestionComment({comment_data}) {
   /* get the flag using useSelector() */
   current_user = useSelector(store => store.users.current_user),
   random_error = useSelector(store => store.extras.random_error),
-  already_voted_question_comment = useSelector(store => store.already_voted_question_comments.find(qc => {
-    return qc.comment_id === comment_data.comment_id 
-      && qc.user_id === (current_user && current_user.user_id)
-  })) || {
-    comment_id: comment_data.comment_id,
-    user_id: current_user && current_user.user_id,
-    vote_flag: null
-  },
-  vote_flag = already_voted_question_comment.vote_flag,
+  alrady_voted_answer_comment = {},
+  // already_voted_answer_comment = useSelector(store => store.already_voted_answer_comments.find(qc => {
+  //   return qc.comment_id === comment_data.comment_id 
+  //     && qc.user_id === (current_user && current_user.user_id)
+  // })) || {
+  //   comment_id: comment_data.comment_id,
+  //   user_id: current_user && current_user.user_id,
+  //   vote_flag: null
+  // },
+  // vote_flag = already_voted_answer_comment.vote_flag,
+  vote_flag = null,
   comment_owner_data = useSelector(store => {
     return store.users.list.find(u => u.user_id === comment_data.user_id) 
   }) || {};
@@ -46,11 +47,11 @@ export default function QuestionComment({comment_data}) {
     dispatch(users_actions.update(res.data))
 
     // fetch and update vote flag, if any
-    res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${current_user.user_id}`)
-    if (res.status !== 200 && res.status !== 204) 
-      throw res
-    if (res.status === 200) 
-      dispatch(already_voted_question_comments_actions.update(res.data))
+    // res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}`)
+    // if (res.status !== 200 && res.status !== 204) 
+    //   throw res
+    // if (res.status === 200) 
+    //   dispatch(already_voted_answer_comments_actions.update(res.data))
 
     set_loading(false)
   } catch(e) {error_log(e)} })(), [])
@@ -73,43 +74,43 @@ export default function QuestionComment({comment_data}) {
       let current_vote_count = comment_data.vote_count
 
       // lock
-      let res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${current_user.user_id}/upvoted`)
+      let res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}/upvoted`)
       if (res.status !== 204)
         throw res
-      dispatch(already_voted_question_comments_actions.update({
-        ...already_voted_question_comment, 
-        vote_flag: `upvoted`
-      }))
+      // dispatch(already_voted_answer_comments_actions.update({
+      //   ...already_voted_answer_comment, 
+      //   vote_flag: `upvoted`
+      // }))
 
       // increment
-      res = await axios.get(`${backend_url}/increment_vote/question_comments/${comment_data.comment_id}`)
+      res = await axios.get(`${backend_url}/increment_vote/answer_comments/${comment_data.comment_id}`)
       if (res.status !== 204)
         throw res
       current_vote_count++;
 
       if (vote_flag === `downvoted`) {
         // increment
-        res = await axios.get(`${backend_url}/increment_vote/question_comments/${comment_data.comment_id}`)
+        res = await axios.get(`${backend_url}/increment_vote/answer_comments/${comment_data.comment_id}`)
         if (res.status !== 204)
           throw res
         current_vote_count++;
       }
 
-      dispatch(question_comments_actions.update({...comment_data, vote_count: current_vote_count}))
+      // dispatch(answer_comments_actions.update({...comment_data, vote_count: current_vote_count}))
     }
 
     else if (vote_flag === `upvoted`) {
       // decrement
-      let res = await axios.get(`${backend_url}/decrement_vote/question_comments/${comment_data.comment_id}`)
+      let res = await axios.get(`${backend_url}/decrement_vote/answer_comments/${comment_data.comment_id}`)
       if (res.status !== 204)
         throw res
-      dispatch(question_comments_actions.update({...comment_data, vote_count: comment_data.vote_count-1}))
+      // dispatch(answer_comments_actions.update({...comment_data, vote_count: comment_data.vote_count-1}))
 
       // unlock
-      res = await axios.delete(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${comment_data.user_id}`)
+      res = await axios.delete(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${comment_data.user_id}`)
       if (res.status !== 204)
         throw res
-      dispatch(already_voted_question_comments_actions.delete(already_voted_question_comment))
+      // dispatch(already_voted_answer_comments_actions.delete(already_voted_answer_comment))
     }
   })
 
@@ -130,40 +131,40 @@ export default function QuestionComment({comment_data}) {
       let current_vote_count = comment_data.vote_count
 
       // lock
-      let res = await axios.get(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${current_user.user_id}/downvoted`)
+      let res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}/downvoted`)
       if (res.status !== 204)
         throw res
-      dispatch(already_voted_question_comments_actions.update({...already_voted_question_comment, vote_flag: `downvoted`}))
+      // dispatch(already_voted_answer_comments_actions.update({...already_voted_answer_comment, vote_flag: `downvoted`}))
 
       // increment
-      res = await axios.get(`${backend_url}/decrement_vote/question_comments/${comment_data.comment_id}`)
+      res = await axios.get(`${backend_url}/decrement_vote/answer_comments/${comment_data.comment_id}`)
       if (res.status !== 204)
         throw res
       current_vote_count--;
 
       if (vote_flag === `upvoted`) {
         // decrement
-        res = await axios.get(`${backend_url}/decrement_vote/question_comments/${comment_data.comment_id}`)
+        res = await axios.get(`${backend_url}/decrement_vote/answer_comments/${comment_data.comment_id}`)
         if (res.status !== 204)
           throw res
         current_vote_count--;
       }
 
-      dispatch(question_comments_actions.update({...comment_data, vote_count: current_vote_count}))
+      // dispatch(answer_comments_actions.update({...comment_data, vote_count: current_vote_count}))
     }
 
     else if (vote_flag === `downvoted`) {
       // increment
-      let res = await axios.get(`${backend_url}/increment_vote/question_comments/${comment_data.comment_id}`)
+      let res = await axios.get(`${backend_url}/increment_vote/answer_comments/${comment_data.comment_id}`)
       if (res.status !== 204)
         throw res
-      dispatch(question_comments_actions.update({...comment_data, vote_count: comment_data.vote_count+1}))
+      // dispatch(answer_comments_actions.update({...comment_data, vote_count: comment_data.vote_count+1}))
 
       // unlock
-      res = await axios.delete(`${backend_url}/already_voted_question_comments/${comment_data.comment_id}/${comment_data.user_id}`)
+      res = await axios.delete(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${comment_data.user_id}`)
       if (res.status !== 204)
         throw res
-      dispatch(already_voted_question_comments_actions.delete(already_voted_question_comment))
+      // dispatch(already_voted_answer_comments_actions.delete(already_voted_answer_comment))
     }
   })
 
@@ -185,7 +186,7 @@ export default function QuestionComment({comment_data}) {
     if (text === comment_data.text)
       return set_edit_comment_clicked(false)
 
-    const res = await axios.put(`${backend_url}/question_comments/${comment_data.comment_id}`, {
+    const res = await axios.put(`${backend_url}/answer_comments/${comment_data.comment_id}`, {
       text: text
     })
 

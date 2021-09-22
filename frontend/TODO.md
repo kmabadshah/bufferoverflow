@@ -34,7 +34,7 @@
 [*] TODO: vote question comments in real time
 [*] TODO: edit question comments in real time
 
-[] TODO: implement answer comments
+[] TODO: implement real time answer comment voting system
 [] TODO: implement the user profile page
 [] TODO: questions, answers, comments deletable by their owners
 [] TODO: upgrade to HTTPS and WSS

@@ -346,14 +346,12 @@ export default function Question() {
 
 
 
-
-  const handle_comment_submit_click = wtc(async(e) => {
+  const handle_comment_submit_click = async(e) => {try{
     e.preventDefault()
 
     if (!e.target[0].value)
       return
 
-    // POST /question_comments/{question_id}
     const res = await axios.post(`${backend_url}/question_comments/${question_data.question_id}`, {
       text: e.target[0].value,
       user_id: current_user.user_id
@@ -363,14 +361,15 @@ export default function Question() {
 
     dispatch(question_comments_actions.add(res.data))
     handle_comment_click()
-  })
+
+  } catch(e) {error_log(e)}}
 
 
 
 
 
 
-  const handle_answer_submit_click = wtc(async(e) => {
+  const handle_answer_submit_click = async(e) => {try{
     e.preventDefault()
     if (!e.target[0].value)
       return
@@ -391,15 +390,9 @@ export default function Question() {
     dispatch(answers_actions.add(
       new_answer_obj(res.data)
     ))
-
     set_show_answer_dialog(false)
-  })
 
-
-
-
-
-
+  } catch(e) {error_log(e)} }
 
 
 

@@ -298,6 +298,67 @@ export const {
   reducer: already_voted_answers_reducer, 
   actions: already_voted_answers_actions } = create_already_voted_slice(`already_voted_answers`)
 
+export const {reducer: answer_comments_reducer, actions: answer_comments_actions} = createSlice({
+  name: 'answer_comments',
+  initialState: [],
+  reducers: {
+    add: (state, {payload}) => {
+      let new_state = [...state];
+
+      if (payload.constructor.name === `Array`)
+        new_state = [...new_state, ...payload]
+      else if (payload.constructor.name === `Object`) {
+        const exists = state.find(cmt => cmt.comment_id === payload.comment_id)
+        if (!exists) {
+          new_state =  [...state, payload]
+        }
+      }
+      else {
+        throw `invalid payload type`
+      }
+
+      new_state.sort(sort_by_vote_count_and_timestamp)
+      return new_state
+
+    },
+
+    update: (state, {payload}) => {
+      if (payload.constructor.name === `Array`) {
+        const new_state = [...state]
+
+        for (const i1 in payload) {
+          let found;
+          for (const i2 in state) {
+            if (payload[i1].comment_id === state[i2].comment_id) {
+              new_state[i2] = payload[i1]
+              found = true
+            }
+          }
+
+          if (!found) {
+            new_state.push(payload[i1])
+          }
+        }
+
+        return new_state
+      }
+
+      return state.map(c => {
+        if (c.comment_id === payload.comment_id && c.user_id === payload.user_id)
+          return payload
+        else
+          return c
+      })
+    }
+
+  }
+})
+
+
+
+
+
+
 
 
 
@@ -314,6 +375,7 @@ export const store = configureStore({
     already_voted_question_comments: already_voted_question_comments_reducer,
 
     answers: answers_reducer,
+    answer_comments: answer_comments_reducer,
     already_voted_answers: already_voted_answers_reducer,
   }
 })
