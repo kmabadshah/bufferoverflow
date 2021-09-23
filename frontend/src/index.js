@@ -38,6 +38,10 @@ function create_already_voted_slice(action_name) {
       row_id_property_name = `answer_id`
       break
 
+    case `already_voted_answer_comments`:
+      row_id_property_name = `comment_id`
+      break
+
     default:
       throw `invalid action_name`
   }
@@ -137,17 +141,29 @@ export const {reducer: users_reducer, actions: users_actions} = createSlice({
 
 
 
+
 /* =========QUESTIONS SECTION=========== */
 export const {reducer: questions_reducer, actions: questions_actions} = createSlice({
   name: 'questions',
   initialState: [],
   reducers: {
     add: (state, {payload}) => {
-      if (payload.constructor.name === `Array`)
-        return [...state, ...payload]
+      let new_state = [...state];
 
-      else
-        return [...state, payload]
+      if (payload.constructor.name === `Array`)
+        new_state = [...new_state, ...payload]
+      else if (payload.constructor.name === `Object`) {
+        const exists = state.find(cmt => cmt.question_id === payload.question_id)
+        if (!exists) {
+          new_state =  [...state, payload]
+        }
+      }
+      else {
+        throw `invalid payload type`
+      }
+
+      new_state.sort(sort_by_vote_count_and_timestamp)
+      return new_state
     },
 
     set: (state, {payload}) => payload,
@@ -305,8 +321,21 @@ export const {reducer: answer_comments_reducer, actions: answer_comments_actions
     add: (state, {payload}) => {
       let new_state = [...state];
 
-      if (payload.constructor.name === `Array`)
-        new_state = [...new_state, ...payload]
+      if (payload.constructor.name === `Array`) {
+        for (const p of payload) {
+          let found = false;
+          for (const s of state) {
+            if (p.comment_id == s.comment_id) {
+              found = true
+              break
+            }
+          }
+
+          if (!found) {
+            new_state = [...new_state, p]
+          }
+        }
+      }
       else if (payload.constructor.name === `Object`) {
         const exists = state.find(cmt => cmt.comment_id === payload.comment_id)
         if (!exists) {
@@ -353,7 +382,9 @@ export const {reducer: answer_comments_reducer, actions: answer_comments_actions
 
   }
 })
-
+export const {
+  reducer: already_voted_answer_comments_reducer, 
+  actions: already_voted_answer_comments_actions} = create_already_voted_slice(`already_voted_answer_comments`)
 
 
 
@@ -377,6 +408,7 @@ export const store = configureStore({
     answers: answers_reducer,
     answer_comments: answer_comments_reducer,
     already_voted_answers: already_voted_answers_reducer,
+    already_voted_answer_comments: already_voted_answer_comments_reducer
   }
 })
 

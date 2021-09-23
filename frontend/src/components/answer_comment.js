@@ -1,7 +1,12 @@
 import React from 'react'
 import axios from 'axios'
 import {backend_url, Navbar, new_answer_obj, Br, wtc, error_log} from './utilities'
-import {extras_actions, question_comments_actions, users_actions, already_voted_question_comments_actions} from '../index.js'
+import {extras_actions, 
+  answer_comments_actions, 
+  users_actions, 
+  already_voted_question_comments_actions,
+  already_voted_answer_comments_actions
+} from '../index.js'
 import {useSelector, useDispatch} from 'react-redux'
 import PropTypes from 'prop-types'
 
@@ -19,20 +24,18 @@ export default function AnswerComment({comment_data}) {
   current_user = useSelector(store => store.users.current_user),
   random_error = useSelector(store => store.extras.random_error),
   alrady_voted_answer_comment = {},
-  // already_voted_answer_comment = useSelector(store => store.already_voted_answer_comments.find(qc => {
-  //   return qc.comment_id === comment_data.comment_id 
-  //     && qc.user_id === (current_user && current_user.user_id)
-  // })) || {
-  //   comment_id: comment_data.comment_id,
-  //   user_id: current_user && current_user.user_id,
-  //   vote_flag: null
-  // },
-  // vote_flag = already_voted_answer_comment.vote_flag,
-  vote_flag = null,
+  already_voted_answer_comment = useSelector(store => store.already_voted_answer_comments.find(qc => {
+    return qc.comment_id === comment_data.comment_id 
+      && qc.user_id === (current_user && current_user.user_id)
+  })) || {
+    comment_id: comment_data.comment_id,
+    user_id: current_user && current_user.user_id,
+    vote_flag: null
+  },
+  vote_flag = already_voted_answer_comment && already_voted_answer_comment.vote_flag,
   comment_owner_data = useSelector(store => {
     return store.users.list.find(u => u.user_id === comment_data.user_id) 
   }) || {};
-
 
 
 
@@ -47,15 +50,14 @@ export default function AnswerComment({comment_data}) {
     dispatch(users_actions.update(res.data))
 
     // fetch and update vote flag, if any
-    // res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}`)
-    // if (res.status !== 200 && res.status !== 204) 
-    //   throw res
-    // if (res.status === 200) 
-    //   dispatch(already_voted_answer_comments_actions.update(res.data))
+    res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}`)
+    if (res.status !== 200 && res.status !== 204) 
+      throw res
+    if (res.status === 200) 
+      dispatch(already_voted_answer_comments_actions.update(res.data))
 
     set_loading(false)
   } catch(e) {error_log(e)} })(), [])
-
 
 
 
@@ -77,10 +79,10 @@ export default function AnswerComment({comment_data}) {
       let res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}/upvoted`)
       if (res.status !== 204)
         throw res
-      // dispatch(already_voted_answer_comments_actions.update({
-      //   ...already_voted_answer_comment, 
-      //   vote_flag: `upvoted`
-      // }))
+      dispatch(already_voted_answer_comments_actions.update({
+        ...already_voted_answer_comment, 
+        vote_flag: `upvoted`
+      }))
 
       // increment
       res = await axios.get(`${backend_url}/increment_vote/answer_comments/${comment_data.comment_id}`)
@@ -96,7 +98,7 @@ export default function AnswerComment({comment_data}) {
         current_vote_count++;
       }
 
-      // dispatch(answer_comments_actions.update({...comment_data, vote_count: current_vote_count}))
+      dispatch(answer_comments_actions.update({...comment_data, vote_count: current_vote_count}))
     }
 
     else if (vote_flag === `upvoted`) {
@@ -104,13 +106,13 @@ export default function AnswerComment({comment_data}) {
       let res = await axios.get(`${backend_url}/decrement_vote/answer_comments/${comment_data.comment_id}`)
       if (res.status !== 204)
         throw res
-      // dispatch(answer_comments_actions.update({...comment_data, vote_count: comment_data.vote_count-1}))
+      dispatch(answer_comments_actions.update({...comment_data, vote_count: comment_data.vote_count-1}))
 
       // unlock
       res = await axios.delete(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${comment_data.user_id}`)
       if (res.status !== 204)
         throw res
-      // dispatch(already_voted_answer_comments_actions.delete(already_voted_answer_comment))
+      dispatch(already_voted_answer_comments_actions.delete(already_voted_answer_comment))
     }
   })
 
@@ -134,7 +136,7 @@ export default function AnswerComment({comment_data}) {
       let res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}/downvoted`)
       if (res.status !== 204)
         throw res
-      // dispatch(already_voted_answer_comments_actions.update({...already_voted_answer_comment, vote_flag: `downvoted`}))
+      dispatch(already_voted_answer_comments_actions.update({...already_voted_answer_comment, vote_flag: `downvoted`}))
 
       // increment
       res = await axios.get(`${backend_url}/decrement_vote/answer_comments/${comment_data.comment_id}`)
@@ -150,7 +152,7 @@ export default function AnswerComment({comment_data}) {
         current_vote_count--;
       }
 
-      // dispatch(answer_comments_actions.update({...comment_data, vote_count: current_vote_count}))
+      dispatch(answer_comments_actions.update({...comment_data, vote_count: current_vote_count}))
     }
 
     else if (vote_flag === `downvoted`) {
@@ -158,13 +160,13 @@ export default function AnswerComment({comment_data}) {
       let res = await axios.get(`${backend_url}/increment_vote/answer_comments/${comment_data.comment_id}`)
       if (res.status !== 204)
         throw res
-      // dispatch(answer_comments_actions.update({...comment_data, vote_count: comment_data.vote_count+1}))
+      dispatch(answer_comments_actions.update({...comment_data, vote_count: comment_data.vote_count+1}))
 
       // unlock
       res = await axios.delete(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${comment_data.user_id}`)
       if (res.status !== 204)
         throw res
-      // dispatch(already_voted_answer_comments_actions.delete(already_voted_answer_comment))
+      dispatch(already_voted_answer_comments_actions.delete(already_voted_answer_comment))
     }
   })
 

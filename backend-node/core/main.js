@@ -14,7 +14,7 @@ import {
     answer_comment_create_async, 
     answer_comment_get_async, 
     answer_comment_get_one_async, 
-    // answer_comment_update_async
+    answer_comment_update_async
 } from './route_methods/comments.js'
 import {parse} from 'url'
 import {
@@ -125,8 +125,15 @@ app.delete(`/already_voted_answers/:answer_id/:user_id`, (req, res) => already_v
 app.post(`/answer_comments/:answer_id`, answer_comment_create_async)
 app.get(`/answer_comments/answer/:answer_id`, answer_comment_get_async)
 app.get(`/answer_comments/:comment_id`, answer_comment_get_one_async)
+app.put(`/answer_comments/:comment_id`, answer_comment_update_async)
 
 
+app.get(`/increment_vote/answer_comments/:comment_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `answer_comment`, `increment`))
+app.get(`/decrement_vote/answer_comments/:comment_id`, (req, res) => increment_or_decrement_table_vote_async(req, res, `answer_comment`, `decrement`))
+
+app.get(`/already_voted_answer_comments/:comment_id/:user_id/:vote_flag`, (req, res) => already_voted_table_create_async(req, res, `answer_comment`))
+app.get(`/already_voted_answer_comments/:comment_id/:user_id`, (req, res) => already_voted_table_get_async(req, res, `answer_comment`))
+app.delete(`/already_voted_answer_comments/:comment_id/:user_id`, (req, res) => already_voted_table_delete_async(req, res, `answer_comment`))
 
 
 

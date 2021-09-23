@@ -174,11 +174,17 @@ export const ws_connect = () => {
           throw res
         store.dispatch(answers_actions.update(res.data))
 
-      } else if (data[`table`] == `question_comments`) {
+      } else if (data[`table`] === `question_comments`) {
         const res = await axios.get(`${backend_url}/question_comments/${data[`comment_id`]}`)
         if (res.status !== 200)
           throw res
         store.dispatch(question_comments_actions.update(res.data))
+
+      } else if (data[`table`] === `answer_comments`) {
+        const res = await axios.get(`${backend_url}/answer_comments/${data[`comment_id`]}`)
+        if (res.status !== 200)
+          throw res
+        store.dispatch(answer_comments_actions.update(res.data))
       }
     }
 

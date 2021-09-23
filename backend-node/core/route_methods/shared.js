@@ -134,11 +134,11 @@ export const increment_or_decrement_table_vote_async = async (req, res, table_na
             table_name_singular !== `question`
             && table_name_singular !== `answer`
             && table_name_singular !== `question_comment`
+            && table_name_singular !== `answer_comment`
         )
     ) throw `invalid table_name_singular argument: increment_or_decrement_vote_async()`
 
     const table_name_plural = table_name_singular + 's'
-
 
     if (flag !== `increment` && flag !== `decrement`)
         throw `invalid flag argument: increment_or_decrement_vote_async()`

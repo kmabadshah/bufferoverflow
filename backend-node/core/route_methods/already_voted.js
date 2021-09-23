@@ -108,7 +108,8 @@ export const already_voted_table_get_async = wtc(async(req, res, table_name_sing
   // check if table_name_singular is valid
   if (table_name_singular !== `answer`
     && table_name_singular !== `question`
-    && table_name_singular !== `question_comment`)
+    && table_name_singular !== `question_comment`
+    && table_name_singular !== `answer_comment`)
   {
     throw `Invalid argument table_name_singular`
   }
@@ -159,7 +160,8 @@ export const already_voted_table_delete_async = wtc(async(req, res, table_name_s
   // check if table_name_singular is valid
   if (table_name_singular !== `answer`
     && table_name_singular !== `question`
-    && table_name_singular !== `question_comment`)
+    && table_name_singular !== `question_comment`
+    && table_name_singular !== `answer_comment`)
   {
     throw `Invalid argument table_name_singular`
   }

@@ -110,6 +110,7 @@ export const question_comment_update_async = wtc(async(req, res) => {
 
 
 
+
 /* ANSWER COMMENTS */
 export async function answer_comment_create_async(req, res) {try {
   const answer_id = req.params.answer_id
@@ -172,4 +173,29 @@ export async function answer_comment_get_one_async(req,res) {try{
   res.status(200).send(db_res)
 
 }catch(e){error_log(e,res)}}
+
+
+
+export const answer_comment_update_async = wtc(async(req, res) => {
+  const comment_id = req.params.comment_id
+  const {text} = req.body
+
+  if (!text)
+    return res.status(400).send(`invalid text field value`)
+
+  await db.none(`
+    update answer_comments
+    set text=$1 where comment_id=$2
+  `, [text, comment_id])
+
+  res.status(204).send()
+  notify_active_clients({
+    signal: `syn`,
+    event: `updated`,
+    data: {
+      table: `answer_comments`,
+      comment_id: comment_id
+    }
+  })
+})
 
