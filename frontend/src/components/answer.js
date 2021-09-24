@@ -283,12 +283,14 @@ export default function Answer({answer_data}) {
         {answer_editable ? `submit` : `edit`}
       </button>
       }
+      {current_user &&
       <button
         className={`ml-10 mt-2 h-12`}
         onClick={handle_comment_click}
       >
         comment_button
       </button>
+      }
 
       <div className={`h-16 w-16 mr-5 flex ml-auto items-center border border-red-900`}>
         <p className={`text-center`}>usrimg</p>

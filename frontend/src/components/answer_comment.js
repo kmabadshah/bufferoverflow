@@ -49,15 +49,17 @@ export default function AnswerComment({comment_data}) {
     if (res.status !== 200) throw res
     dispatch(users_actions.update(res.data))
 
-    // fetch and update vote flag, if any
-    res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}`)
-    if (res.status !== 200 && res.status !== 204) 
-      throw res
-    if (res.status === 200) 
-      dispatch(already_voted_answer_comments_actions.update(res.data))
+    if (current_user) {
+      // fetch and update vote flag, if any
+      res = await axios.get(`${backend_url}/already_voted_answer_comments/${comment_data.comment_id}/${current_user.user_id}`)
+      if (res.status !== 200 && res.status !== 204) 
+        throw res
+      if (res.status === 200) 
+        dispatch(already_voted_answer_comments_actions.update(res.data))
+    }
 
     set_loading(false)
-  } catch(e) {error_log(e)} })(), [])
+  } catch(e) {error_log(e,true)} })(), [])
 
 
 

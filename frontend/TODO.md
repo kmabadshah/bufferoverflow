@@ -37,6 +37,7 @@
 [*] TODO: implement answer comments
 [*] TODO: implement real time answer comment voting system
 [] TODO: implement the user profile page
+[] TODO: scale the backend with docker, shard the database
 [] TODO: questions, answers, comments deletable by their owners
 [] TODO: upgrade to HTTPS and WSS
 
